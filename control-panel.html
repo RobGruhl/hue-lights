@@ -450,39 +450,57 @@
             static: { name: 'Static', icon: '◼', speed: 0, description: 'No animation' }
         };
 
-        // Rooms with light IDs
+        // Rooms with light IDs and shell script names
         const ROOMS = {
             dining: {
                 name: 'Dining Floor',
+                shellName: 'dining',  // Name used by run-scene.sh
                 lights: ['fa08b99f-aa8a-4683-af76-c0e3fd566217','03e56936-b959-4687-b2de-5f2f670c8674','d1a940ac-c385-4857-88dc-bb89ff5ddfc4','ca82265e-1ee9-4337-a0d4-e44b46b21b1d','457a3777-b619-4765-92a0-7292cbbaab7b','ca9107e3-4f2c-4383-bf1a-67ae0765bbdf','52e22f83-a8c0-4ede-9a5e-68801c8c69f7','bd5ef4f9-7258-4ee8-af97-851b9713c147','dd90028e-5494-4585-9a75-cb593d1275ec','7fabbbed-4222-4bf4-baee-64977ebc5dde','f95f8da4-3dd0-4f80-91a5-ca8ad1a7ff22']
             },
             jamie: {
                 name: "Jamie's Office",
+                shellName: 'jamies-office',
                 lights: ['7f91bd72-a9eb-4310-bf9a-461db7d8635c','74d25075-110e-4db5-b0e0-f3e60addb10b','d220cd0b-219f-4eae-8ea1-4fd20fa06275','e1e48801-86bd-4725-8098-c6249a8d8346']
             },
             master: {
                 name: 'Master Bedroom',
+                shellName: 'master-bedroom',
                 lights: ['dfcfd007-8106-435e-80d3-4dc09174b783','6ae37491-1a2f-470f-8204-9c0b7d01da8f','52b7c364-3a09-4ada-9b7d-f1d687e4a6bf','a15aef77-0db6-4480-a0a5-2a5aa4d74dd4','91b5c5db-296b-4491-b220-1cfa5231a875','b703f623-4cd0-4325-9d93-660c48fb0199','5396d289-b7e1-4bdb-90f6-2b57e0ad7fc5','0d806f9b-0416-47bb-8583-e5461fecb669']
             },
             bath: {
                 name: 'Master Bath',
+                shellName: 'master-bath',
                 lights: ['e15184b3-d09a-4b0a-b8b1-fd8a16f69a0c']
             },
             jordan: {
                 name: "Jordan's Room",
+                shellName: 'jordans-room',
                 lights: ['a2a890cf-6d44-480d-887f-14c711ba4821','c75776ff-d48f-4ec8-b8cc-5dd45e50e9d7','9c26b749-70db-4492-996e-c0dad1e41cd1']
             },
             keston: {
                 name: "Keston's Room",
+                shellName: 'kestons-room',
                 lights: ['2d2cc7f7-9987-44d6-be2c-86420050157c','585292eb-f27d-432d-a82f-db450c8c9fb2','d3bbd5c5-585c-48b1-a01d-4eb5a4d7f4c6']
             },
             tv: {
                 name: 'TV Room',
+                shellName: 'tv-room',
                 lights: ['aacd4d39-f3fa-42d4-9ac4-0abf1647854d']
             },
             balcony: {
                 name: 'Balcony',
+                shellName: 'balcony',
                 lights: ['7b12ed85-aebe-4c3e-9471-ad8598443ef3']
+            },
+            'whole-house': {
+                name: 'Whole House',
+                shellName: 'whole-house',
+                lights: []  // Composite - handled by shell script
+            },
+            'adults-only': {
+                name: 'Adults Only',
+                shellName: 'adults-only',
+                lights: []  // Composite - handled by shell script
             }
         };
 
@@ -492,6 +510,7 @@
         let selectedRooms = ['dining'];
         let animationInterval = null;
         let healthCheckInterval = null;
+        let sceneStatusInterval = null;
         let phase = 0;
         let isConnected = false;
         let consecutiveFailures = 0;
@@ -499,6 +518,7 @@
         const MAX_LOG_ENTRIES = 100;
         const REQUEST_TIMEOUT = 5000;
         const MAX_FAILURES_BEFORE_RECONNECT = 3;
+        const SCENE_STATUS_POLL_INTERVAL = 3000;
 
         // Initialize UI
         function init() {
@@ -514,6 +534,10 @@
                 }
             }, 30000);
 
+            // Poll scene status from server
+            sceneStatusInterval = setInterval(checkSceneStatus, SCENE_STATUS_POLL_INTERVAL);
+            checkSceneStatus();  // Initial check
+
             document.getElementById('speedSlider').addEventListener('input', (e) => {
                 document.getElementById('speedValue').textContent = e.target.value + 'x';
             });
@@ -522,7 +546,43 @@
             window.addEventListener('beforeunload', () => {
                 if (animationInterval) clearInterval(animationInterval);
                 if (healthCheckInterval) clearInterval(healthCheckInterval);
+                if (sceneStatusInterval) clearInterval(sceneStatusInterval);
             });
+        }
+
+        // Check scene status from server
+        async function checkSceneStatus() {
+            if (!CONFIG.useProxy) return;  // Only works with server
+
+            try {
+                const response = await fetch('/api/scenes/status', {
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                if (response.ok) {
+                    const status = await response.json();
+                    updateSceneStatusUI(status);
+                }
+            } catch (e) {
+                // Silently ignore - server might not be running
+            }
+        }
+
+        // Update UI based on server scene status
+        function updateSceneStatusUI(status) {
+            if (status.running) {
+                isAnimationRunning = true;
+                document.getElementById('statusDot').classList.add('running');
+                const paletteName = PALETTES[status.palette.toUpperCase()]?.name || status.palette;
+                const animName = ANIMATIONS[status.animation]?.name || status.animation;
+                document.getElementById('statusText').textContent = `Running: ${paletteName} + ${animName}`;
+            } else if (isAnimationRunning) {
+                // Scene stopped externally
+                isAnimationRunning = false;
+                document.getElementById('statusDot').classList.remove('running');
+                document.getElementById('statusText').textContent = isConnected
+                    ? 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '')
+                    : 'Not connected';
+            }
         }
 
         function renderPalettes() {
@@ -734,12 +794,58 @@
             }
         }
 
-        function startAnimation() {
+        async function startAnimation() {
             if (!isConnected) {
                 log('Not connected to bridge - please wait for reconnection', 'error');
                 return;
             }
 
+            if (selectedRooms.length === 0) {
+                log('Please select at least one room', 'error');
+                return;
+            }
+
+            const palette = PALETTES[selectedPalette];
+            const anim = ANIMATIONS[selectedAnimation];
+
+            // Get shell-compatible room names
+            const shellRooms = selectedRooms.map(key => ROOMS[key].shellName);
+
+            log(`Starting ${palette.name} + ${anim.name} on ${shellRooms.join(', ')}`, 'info');
+
+            // Use server-side scene management if available
+            if (CONFIG.useProxy) {
+                try {
+                    const response = await fetch('/api/scenes/start', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            palette: selectedPalette.toLowerCase(),
+                            animation: selectedAnimation,
+                            rooms: shellRooms
+                        })
+                    });
+
+                    if (response.ok) {
+                        isAnimationRunning = true;
+                        document.getElementById('statusDot').classList.add('running');
+                        document.getElementById('statusText').textContent = `Running: ${palette.name} + ${anim.name}`;
+                        log('Animation started via server', 'success');
+                    } else {
+                        const err = await response.json();
+                        log(`Failed to start: ${err.error}`, 'error');
+                    }
+                } catch (e) {
+                    log(`Server error: ${e.message}`, 'error');
+                }
+            } else {
+                // Fallback to client-side animation (original behavior)
+                startClientAnimation();
+            }
+        }
+
+        // Client-side animation fallback (when not using server)
+        function startClientAnimation() {
             if (animationInterval) {
                 clearInterval(animationInterval);
             }
@@ -750,13 +856,6 @@
             const speedMultiplier = parseFloat(document.getElementById('speedSlider').value);
             const interval = anim.speed / speedMultiplier;
 
-            if (lights.length === 0) {
-                log('Please select at least one room', 'error');
-                return;
-            }
-
-            log(`Starting ${palette.name} + ${anim.name} on ${lights.length} lights`, 'info');
-
             isAnimationRunning = true;
             consecutiveFailures = 0;
             document.getElementById('statusDot').classList.add('running');
@@ -766,7 +865,6 @@
             let frameInProgress = false;
 
             const runFrame = async () => {
-                // Skip if previous frame still running (prevents pile-up)
                 if (frameInProgress || !isAnimationRunning) return;
                 frameInProgress = true;
 
@@ -800,7 +898,6 @@
                             brightness = palette.brightness[colorIndex];
                             break;
                         case 'disco':
-                            // Fully random color for each light - party mode!
                             colorIndex = Math.floor(Math.random() * paletteLen);
                             brightness = 70 + Math.floor(Math.random() * 31);
                             break;
@@ -812,7 +909,6 @@
                     promises.push(setLight(lightId, palette.colors[colorIndex], brightness, interval * 0.8));
                 });
 
-                // Wait for all requests to complete before allowing next frame
                 try {
                     await Promise.all(promises);
                 } catch (e) {
@@ -827,7 +923,20 @@
             animationInterval = setInterval(runFrame, interval);
         }
 
-        function stopAnimation() {
+        async function stopAnimation() {
+            // Use server-side stop if available
+            if (CONFIG.useProxy) {
+                try {
+                    await fetch('/api/scenes/stop', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                } catch (e) {
+                    // Ignore errors
+                }
+            }
+
+            // Also stop client-side animation if running
             isAnimationRunning = false;
             if (animationInterval) {
                 clearInterval(animationInterval);
