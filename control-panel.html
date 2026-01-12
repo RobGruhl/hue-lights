@@ -484,8 +484,14 @@
         let selectedAnimation = 'breathing';
         let selectedRooms = ['dining'];
         let animationInterval = null;
+        let healthCheckInterval = null;
         let phase = 0;
         let isConnected = false;
+        let consecutiveFailures = 0;
+        let isAnimationRunning = false;
+        const MAX_LOG_ENTRIES = 100;
+        const REQUEST_TIMEOUT = 5000;
+        const MAX_FAILURES_BEFORE_RECONNECT = 3;
 
         // Initialize UI
         function init() {
@@ -494,8 +500,21 @@
             renderRooms();
             testConnection();
 
+            // Periodic health check every 30 seconds
+            healthCheckInterval = setInterval(() => {
+                if (!isAnimationRunning) {
+                    testConnection(true);  // silent mode
+                }
+            }, 30000);
+
             document.getElementById('speedSlider').addEventListener('input', (e) => {
                 document.getElementById('speedValue').textContent = e.target.value + 'x';
+            });
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', () => {
+                if (animationInterval) clearInterval(animationInterval);
+                if (healthCheckInterval) clearInterval(healthCheckInterval);
             });
         }
 
@@ -575,24 +594,42 @@
             };
         }
 
-        async function testConnection() {
+        async function testConnection(silent = false) {
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
                 const url = getApiUrl('/clip/v2/resource/light');
-                const response = await fetch(url, { headers: getHeaders() });
+                const response = await fetch(url, {
+                    headers: getHeaders(),
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
                 if (response.ok) {
+                    const wasDisconnected = !isConnected;
                     isConnected = true;
+                    consecutiveFailures = 0;
                     document.getElementById('statusDot').classList.add('connected');
-                    document.getElementById('statusText').textContent = 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '');
-                    log('Connected to Hue bridge' + (CONFIG.useProxy ? ' via proxy' : ''), 'success');
+                    if (!isAnimationRunning) {
+                        document.getElementById('statusText').textContent = 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '');
+                    }
+                    if (!silent || wasDisconnected) {
+                        log('Connected to Hue bridge' + (CONFIG.useProxy ? ' via proxy' : ''), 'success');
+                    }
                 } else {
                     throw new Error(`HTTP ${response.status}`);
                 }
             } catch (e) {
-                if (CONFIG.useProxy) {
-                    log('Cannot connect - is server.py running?', 'error');
-                } else {
-                    log('Cannot connect - run: python3 server.py', 'error');
-                    log('Then visit http://localhost:8080/control-panel.html', 'info');
+                isConnected = false;
+                document.getElementById('statusDot').classList.remove('connected');
+                if (!silent) {
+                    if (CONFIG.useProxy) {
+                        log('Cannot connect - is server.py running?', 'error');
+                    } else {
+                        log('Cannot connect - run: python3 server.py', 'error');
+                        log('Then visit http://localhost:8080/control-panel.html', 'info');
+                    }
                 }
             }
         }
@@ -604,6 +641,11 @@
             entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
             logEl.appendChild(entry);
             logEl.scrollTop = logEl.scrollHeight;
+
+            // Trim old entries to prevent memory leak
+            while (logEl.children.length > MAX_LOG_ENTRIES) {
+                logEl.removeChild(logEl.firstChild);
+            }
         }
 
         function getSelectedLights() {
@@ -615,8 +657,11 @@
         }
 
         async function setLight(lightId, color, brightness, duration = 1000) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
             try {
-                await fetch(getApiUrl(`/clip/v2/resource/light/${lightId}`), {
+                const response = await fetch(getApiUrl(`/clip/v2/resource/light/${lightId}`), {
                     method: 'PUT',
                     headers: getHeaders(),
                     body: JSON.stringify({
@@ -624,24 +669,70 @@
                         dimming: { brightness },
                         color: { xy: { x: color[0], y: color[1] } },
                         dynamics: { duration }
-                    })
+                    }),
+                    signal: controller.signal
                 });
+                clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                consecutiveFailures = 0;
+                return true;
             } catch (e) {
-                // Ignore individual light errors
+                clearTimeout(timeoutId);
+                consecutiveFailures++;
+
+                // Check if we need to reconnect
+                if (consecutiveFailures >= MAX_FAILURES_BEFORE_RECONNECT) {
+                    handleConnectionFailure();
+                }
+                return false;
+            }
+        }
+
+        function handleConnectionFailure() {
+            if (isAnimationRunning) {
+                log('Connection issues detected, attempting to reconnect...', 'error');
+                stopAnimation();
+                isConnected = false;
+                document.getElementById('statusDot').classList.remove('connected');
+                document.getElementById('statusText').textContent = 'Connection lost - reconnecting...';
+
+                // Try to reconnect after a brief pause
+                setTimeout(() => {
+                    testConnection().then(() => {
+                        if (isConnected) {
+                            log('Reconnected! You can restart the animation.', 'success');
+                        }
+                    });
+                }, 2000);
             }
         }
 
         async function turnOffLight(lightId) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+
             try {
                 await fetch(getApiUrl(`/clip/v2/resource/light/${lightId}`), {
                     method: 'PUT',
                     headers: getHeaders(),
-                    body: JSON.stringify({ on: { on: false } })
+                    body: JSON.stringify({ on: { on: false } }),
+                    signal: controller.signal
                 });
-            } catch (e) {}
+                clearTimeout(timeoutId);
+            } catch (e) {
+                clearTimeout(timeoutId);
+            }
         }
 
         function startAnimation() {
+            if (!isConnected) {
+                log('Not connected to bridge - please wait for reconnection', 'error');
+                return;
+            }
+
             if (animationInterval) {
                 clearInterval(animationInterval);
             }
@@ -659,12 +750,19 @@
 
             log(`Starting ${palette.name} + ${anim.name} on ${lights.length} lights`, 'info');
 
+            isAnimationRunning = true;
+            consecutiveFailures = 0;
             document.getElementById('statusDot').classList.add('running');
             document.getElementById('statusText').textContent = `Running: ${palette.name} + ${anim.name}`;
 
             phase = 0;
+            let frameInProgress = false;
 
-            const runFrame = () => {
+            const runFrame = async () => {
+                // Skip if previous frame still running (prevents pile-up)
+                if (frameInProgress || !isAnimationRunning) return;
+                frameInProgress = true;
+
                 const paletteLen = palette.colors.length;
                 const promises = [];
 
@@ -699,13 +797,18 @@
                             brightness = palette.brightness[colorIndex];
                     }
 
-                    // Fire all requests in parallel
                     promises.push(setLight(lightId, palette.colors[colorIndex], brightness, interval * 0.8));
                 });
 
-                // Don't await - let them run in parallel
-                Promise.all(promises);
+                // Wait for all requests to complete before allowing next frame
+                try {
+                    await Promise.all(promises);
+                } catch (e) {
+                    // Errors handled in setLight
+                }
+
                 phase = (phase + 1) % paletteLen;
+                frameInProgress = false;
             };
 
             runFrame();
@@ -713,17 +816,27 @@
         }
 
         function stopAnimation() {
+            isAnimationRunning = false;
             if (animationInterval) {
                 clearInterval(animationInterval);
                 animationInterval = null;
             }
+            consecutiveFailures = 0;
             document.getElementById('statusDot').classList.remove('running');
-            document.getElementById('statusText').textContent = isConnected ? 'Connected to bridge' : 'Not connected';
+            document.getElementById('statusText').textContent = isConnected
+                ? 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '')
+                : 'Not connected';
             log('Animation stopped', 'info');
         }
 
         function setStatic() {
             stopAnimation();
+
+            if (!isConnected) {
+                log('Not connected to bridge - please wait for reconnection', 'error');
+                return;
+            }
+
             const palette = PALETTES[selectedPalette];
             const lights = getSelectedLights();
 
@@ -734,17 +847,31 @@
 
             log(`Setting static ${palette.name} on ${lights.length} lights`, 'info');
 
-            lights.forEach((lightId, idx) => {
+            const promises = lights.map((lightId, idx) => {
                 const colorIndex = Math.floor(idx * palette.colors.length / lights.length);
-                setLight(lightId, palette.colors[colorIndex], palette.brightness[colorIndex], 2000);
+                return setLight(lightId, palette.colors[colorIndex], palette.brightness[colorIndex], 2000);
+            });
+
+            Promise.all(promises).then(() => {
+                log('Static scene applied', 'success');
             });
         }
 
         function turnOff() {
             stopAnimation();
             const lights = getSelectedLights();
+
+            if (lights.length === 0) {
+                log('Please select at least one room', 'error');
+                return;
+            }
+
             log(`Turning off ${lights.length} lights`, 'info');
-            lights.forEach(lightId => turnOffLight(lightId));
+
+            const promises = lights.map(lightId => turnOffLight(lightId));
+            Promise.all(promises).then(() => {
+                log('Lights turned off', 'success');
+            });
         }
 
         // Start
