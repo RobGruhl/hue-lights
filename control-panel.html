@@ -430,6 +430,12 @@
                 colors: [[0.65,0.33],[0.62,0.35],[0.60,0.38],[0.58,0.40],[0.55,0.42],[0.58,0.40],[0.62,0.36],[0.65,0.33],[0.63,0.32],[0.60,0.35],[0.57,0.38],[0.60,0.36]],
                 brightness: [80,90,100,90,80,70,85,95,90,85,75,80],
                 preview: 'linear-gradient(90deg, #ff4757, #ff6348, #ffa502, #ff7f50)'
+            },
+            ROLLERDISCO: {
+                name: 'Roller Disco',
+                colors: [[0.45,0.15],[0.15,0.25],[0.25,0.65],[0.32,0.12],[0.60,0.38],[0.68,0.31],[0.20,0.15],[0.55,0.25],[0.45,0.15],[0.15,0.25],[0.32,0.12],[0.68,0.31]],
+                brightness: [100,100,100,100,100,100,100,100,100,100,100,100],
+                preview: 'linear-gradient(90deg, #ff1493, #00bfff, #32cd32, #9400d3, #ff4500, #ff1493)'
             }
         };
 
@@ -440,6 +446,7 @@
             flicker: { name: 'Flicker', icon: '🕯️', speed: 1200, description: 'Candle effect' },
             drift: { name: 'Drift', icon: '☁️', speed: 15000, description: 'Very slow' },
             pulse: { name: 'Pulse', icon: '💫', speed: 1500, description: 'Fast sync' },
+            disco: { name: 'Disco', icon: '🪩', speed: 300, description: 'Party mode!' },
             static: { name: 'Static', icon: '◼', speed: 0, description: 'No animation' }
         };
 
@@ -791,6 +798,11 @@
                         case 'pulse':
                             colorIndex = phase % paletteLen;
                             brightness = palette.brightness[colorIndex];
+                            break;
+                        case 'disco':
+                            // Fully random color for each light - party mode!
+                            colorIndex = Math.floor(Math.random() * paletteLen);
+                            brightness = 70 + Math.floor(Math.random() * 31);
                             break;
                         default:
                             colorIndex = Math.floor(idx * paletteLen / lights.length);

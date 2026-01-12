@@ -231,6 +231,40 @@ run_pulse() {
 }
 
 # =============================================================================
+# ANIMATION: DISCO
+# Crazy fast random colors - party mode!
+# =============================================================================
+
+DISCO_STEP_TIME=0.3
+DISCO_TRANSITION=200
+
+run_disco() {
+    local lights=("$@")
+    local light_count=${#lights[@]}
+
+    echo "🪩 DISCO MODE ACTIVATED 🪩"
+    echo "Press Ctrl+C to stop"
+
+    while true; do
+        for light in "${lights[@]}"; do
+            local type="${light%%:*}"
+            local id="${light#*:}"
+            # Fully random color from palette for each light
+            local light_phase=$(( RANDOM % PALETTE_LEN ))
+            local bri=$(( 70 + RANDOM % 31 ))
+
+            if [[ "$type" == "gradient" ]]; then
+                set_gradient "$id" "$light_phase" "$DISCO_TRANSITION" "$bri" &
+            else
+                set_solid "$id" "$light_phase" "$DISCO_TRANSITION" "$bri" &
+            fi
+        done
+        wait
+        sleep "$DISCO_STEP_TIME"
+    done
+}
+
+# =============================================================================
 # ANIMATION: STATIC
 # No movement - just set all lights to a fixed palette position
 # =============================================================================
@@ -274,10 +308,11 @@ run_animation() {
         flicker)   run_flicker "${lights[@]}" ;;
         drift)     run_drift "${lights[@]}" ;;
         pulse)     run_pulse "${lights[@]}" ;;
+        disco)     run_disco "${lights[@]}" ;;
         static)    run_static "${lights[@]}" ;;
         *)
             echo "Unknown animation: $animation" >&2
-            echo "Available: wave, breathing, flicker, drift, pulse, static" >&2
+            echo "Available: wave, breathing, flicker, drift, pulse, disco, static" >&2
             return 1
             ;;
     esac
@@ -291,5 +326,6 @@ list_animations() {
     echo "  flicker   - Randomized candle-like variations (1.2s/step)"
     echo "  drift     - Very slow, almost imperceptible (15s/step)"
     echo "  pulse     - Fast synchronized pulse for parties (1.5s/step)"
+    echo "  disco     - Crazy fast random colors - party mode! (0.3s/step)"
     echo "  static    - Set colors once, no animation"
 }
