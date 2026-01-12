@@ -1,5 +1,22 @@
 # Scene Preferences & Notes
 
+## Modular Scene System
+
+**New!** Mix and match any palette + animation + room(s):
+
+```bash
+./scripts/run-scene.sh <palette> <animation> <room> [room2] ...
+
+# Examples:
+./scripts/run-scene.sh ocean breathing whole-house
+./scripts/run-scene.sh vaporwave wave dining jamies-office
+./scripts/run-scene.sh candle flicker dining-signes-only
+```
+
+See [modular-scenes.md](modular-scenes.md) for full documentation.
+
+---
+
 ## Household Preferences
 
 ### Rob
@@ -82,6 +99,41 @@
 - **Animation**: Fast vertical wave (1.5s per phase)
 - **Rooms**: Jamie's office + Master bedroom only
 - **Script**: `scripts/middle-of-the-night-pinks.sh`
+- **Status**: Complete
+
+### 6. Morning Sunrise ✓
+- **Colors**: Deep coral → peach → soft gold → warm white
+- **Animation**: Slow wave E→W (opposite of sunset, 10s per phase)
+- **Rooms**: Dining room only
+- **Kitchen**: Coral (east) / Gold (west)
+- **Script**: `scripts/morning-sunrise.sh`
+- **Purpose**: Gentle, energizing wake-up scene
+- **Status**: Complete
+
+### 7. Deep Ocean ✓
+- **Colors**: Deep teal → seafoam → pale aqua → soft white
+- **Animation**: Breathing rhythm - all rooms with subtle phase offsets (8s per phase)
+- **Rooms**: WHOLE HOUSE (all 32 lights)
+- **Script**: `scripts/deep-ocean.sh`
+- **Purpose**: Calming, meditative - focus work or relaxation
+- **Status**: Complete
+
+### 8. Candlelight Dinner ✓
+- **Colors**: Warm amber → soft gold → cream (narrow warm range)
+- **Animation**: Subtle flicker effect mimicking candles (1.2s per phase)
+- **Rooms**: Dining room only
+- **Kitchen**: Very dim (15-25%) warm amber - accent only
+- **Script**: `scripts/candlelight-dinner.sh`
+- **Purpose**: Sophisticated entertaining, romantic dinners
+- **Status**: Complete
+
+### 9. Nordic Twilight ✓
+- **Colors**: Soft lavender → dusty rose → warm cream → pale amber
+- **Animation**: Very slow drift, almost imperceptible (15s per phase)
+- **Rooms**: Dining room only
+- **Kitchen**: Lavender (west) / Warm cream (east)
+- **Script**: `scripts/nordic-twilight.sh`
+- **Purpose**: Cozy hygge-style relaxation before bed
 - **Status**: Complete
 
 ---

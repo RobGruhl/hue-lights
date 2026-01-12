@@ -148,6 +148,48 @@ POS_OFFSETS=(0 1 2 4 5 7 10)  # ~proportional to 0, 2, 5.5, 11.5, 15.5, 22.5, 31
 | Peach | 0.57 | 0.38 |
 | Warm orange | 0.55 | 0.40 |
 
+### Morning Sunrise Palette
+| Color | X | Y | Brightness |
+|-------|---|---|------------|
+| Deep coral | 0.58 | 0.35 | 100% |
+| Coral | 0.55 | 0.38 | 95% |
+| Peach | 0.52 | 0.40 | 90% |
+| Soft gold | 0.50 | 0.42 | 85% |
+| Gold | 0.48 | 0.43 | 85% |
+| Warm white | 0.45 | 0.43 | 85% |
+| Cream | 0.42 | 0.42 | 90% |
+| Pale cream | 0.40 | 0.40 | 95% |
+
+### Deep Ocean Palette
+| Color | X | Y | Brightness |
+|-------|---|---|------------|
+| Deep teal | 0.16 | 0.32 | 100% |
+| Teal | 0.18 | 0.34 | 100% |
+| Sea green | 0.20 | 0.36 | 100% |
+| Seafoam | 0.23 | 0.37 | 100% |
+| Pale aqua | 0.26 | 0.38 | 95% |
+| Light aqua | 0.28 | 0.37 | 90% |
+| Soft white | 0.30 | 0.36 | 85% |
+
+### Candlelight Palette
+| Color | X | Y | Brightness |
+|-------|---|---|------------|
+| Warm amber | 0.54 | 0.41 | 75% |
+| Amber | 0.52 | 0.42 | 85% |
+| Deep amber | 0.55 | 0.40 | 70% |
+| Gold | 0.53 | 0.43 | 90% |
+| Soft amber | 0.51 | 0.42 | 80% |
+
+### Nordic Twilight Palette
+| Color | X | Y | Brightness |
+|-------|---|---|------------|
+| Soft lavender | 0.34 | 0.28 | 70% |
+| Lavender | 0.38 | 0.30 | 75% |
+| Dusty rose | 0.42 | 0.34 | 80% |
+| Blush | 0.44 | 0.36 | 85% |
+| Warm cream | 0.46 | 0.38 | 85% |
+| Pale amber | 0.48 | 0.40 | 85% |
+
 ---
 
 ## API Rate Limits

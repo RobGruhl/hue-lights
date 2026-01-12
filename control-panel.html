@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hue Light Control Panel</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 30px;
+        }
+
+        .status-bar {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ff4757;
+        }
+
+        .status-dot.connected {
+            background: #2ed573;
+        }
+
+        .status-dot.running {
+            background: #ffa502;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            font-size: 1.2em;
+            margin-bottom: 15px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .palette-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+
+        .palette-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .palette-card:hover {
+            transform: translateY(-2px);
+            background: rgba(0,0,0,0.5);
+        }
+
+        .palette-card.selected {
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .palette-preview {
+            height: 40px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+
+        .palette-name {
+            font-size: 0.9em;
+            text-align: center;
+        }
+
+        .animation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .animation-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .animation-card:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .animation-card.selected {
+            border-color: #fff;
+            box-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+
+        .animation-icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .animation-name {
+            font-size: 0.85em;
+        }
+
+        .animation-speed {
+            font-size: 0.7em;
+            color: #888;
+        }
+
+        .room-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+        }
+
+        .room-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+            text-align: center;
+        }
+
+        .room-card:hover {
+            background: rgba(0,0,0,0.5);
+        }
+
+        .room-card.selected {
+            border-color: #48dbfb;
+            background: rgba(72, 219, 251, 0.1);
+        }
+
+        .room-lights {
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            font-size: 1.1em;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #2ed573, #1abc9c);
+            color: #fff;
+        }
+
+        .btn-start:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(46, 213, 115, 0.4);
+        }
+
+        .btn-stop {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: #fff;
+        }
+
+        .btn-stop:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 71, 87, 0.4);
+        }
+
+        .btn-static {
+            background: linear-gradient(135deg, #5f27cd, #341f97);
+            color: #fff;
+        }
+
+        .btn-static:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-off {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+        }
+
+        .btn-off:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .log {
+            background: rgba(0,0,0,0.5);
+            border-radius: 10px;
+            padding: 15px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            font-size: 0.8em;
+            max-height: 150px;
+            overflow-y: auto;
+            color: #888;
+        }
+
+        .log-entry {
+            margin: 3px 0;
+        }
+
+        .log-entry.success { color: #2ed573; }
+        .log-entry.error { color: #ff4757; }
+        .log-entry.info { color: #48dbfb; }
+
+        .settings {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .setting-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .setting-group label {
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        input[type="range"] {
+            width: 100px;
+        }
+
+        input[type="text"] {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 5px;
+            padding: 8px 12px;
+            color: #fff;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hue Control Panel</h1>
+        <p class="subtitle">Mix palettes, animations, and rooms</p>
+
+        <div class="status-bar">
+            <div class="status-indicator">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Not connected</span>
+            </div>
+            <div class="settings">
+                <div class="setting-group">
+                    <label>Speed:</label>
+                    <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1">
+                    <span id="speedValue">1x</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Palette</h2>
+            <div class="palette-grid" id="paletteGrid"></div>
+        </div>
+
+        <div class="section">
+            <h2>Animation</h2>
+            <div class="animation-grid" id="animationGrid"></div>
+        </div>
+
+        <div class="section">
+            <h2>Rooms</h2>
+            <div class="room-grid" id="roomGrid"></div>
+        </div>
+
+        <div class="section">
+            <div class="controls">
+                <button class="btn-start" onclick="startAnimation()">▶ Start Animation</button>
+                <button class="btn-static" onclick="setStatic()">◼ Set Static</button>
+                <button class="btn-stop" onclick="stopAnimation()">⏹ Stop</button>
+                <button class="btn-off" onclick="turnOff()">Turn Off Lights</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Log</h2>
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        // When running via server.py, use the proxy endpoint
+        // When opening file directly, try direct bridge access
+        const CONFIG = {
+            bridge: '192.168.1.209',
+            apiKey: 'afWtQvMRm2Chj0G8nU7NS9bkKBAEKXd0JNm2QafC',
+            useProxy: window.location.protocol === 'http:',  // Use proxy if served via HTTP
+            proxyBase: '/api'
+        };
+
+        // Palettes with XY color coordinates
+        const PALETTES = {
+            SUNFLARE: {
+                name: 'Warm Sunflare',
+                colors: [[0.52,0.41],[0.50,0.42],[0.47,0.42],[0.44,0.41],[0.40,0.40],[0.36,0.39],[0.32,0.38],[0.28,0.37],[0.24,0.36],[0.20,0.35],[0.18,0.37],[0.20,0.36]],
+                brightness: [80,85,88,90,92,95,98,100,100,100,100,100],
+                preview: 'linear-gradient(90deg, #f39c12, #f1c40f, #1abc9c, #3498db)'
+            },
+            VAPORWAVE: {
+                name: 'Vaporwave',
+                colors: [[0.45,0.22],[0.42,0.20],[0.38,0.17],[0.34,0.15],[0.30,0.14],[0.25,0.13],[0.20,0.14],[0.16,0.20],[0.15,0.28],[0.18,0.32],[0.25,0.25],[0.35,0.20]],
+                brightness: [100,100,100,100,100,100,100,100,100,100,100,100],
+                preview: 'linear-gradient(90deg, #ff6b9d, #c44cff, #6c5ce7, #00d4ff)'
+            },
+            TOADSTOOL: {
+                name: 'Woodland Toadstool',
+                colors: [[0.60,0.35],[0.58,0.38],[0.55,0.40],[0.52,0.42],[0.48,0.44],[0.45,0.47],[0.42,0.50],[0.38,0.52],[0.35,0.54],[0.33,0.52],[0.36,0.45],[0.45,0.40]],
+                brightness: [100,100,95,90,90,90,95,100,100,100,100,100],
+                preview: 'linear-gradient(90deg, #d35400, #e67e22, #f39c12, #27ae60, #16a085)'
+            },
+            ROMANTIC: {
+                name: 'Romantic Pink',
+                colors: [[0.50,0.25],[0.52,0.28],[0.54,0.30],[0.56,0.32],[0.57,0.34],[0.58,0.36],[0.57,0.38],[0.56,0.40],[0.54,0.38],[0.52,0.35],[0.50,0.30],[0.48,0.26]],
+                brightness: [100,100,100,100,100,95,90,85,90,95,100,100],
+                preview: 'linear-gradient(90deg, #ff6b9d, #ff8a80, #ffab91, #ff7043)'
+            },
+            MIDNIGHT: {
+                name: 'Midnight Pinks',
+                colors: [[0.45,0.20],[0.42,0.17],[0.38,0.15],[0.35,0.14],[0.32,0.15],[0.30,0.18],[0.32,0.20],[0.36,0.18],[0.40,0.16],[0.44,0.17],[0.46,0.19],[0.45,0.20]],
+                brightness: [100,100,100,100,100,100,100,100,100,100,100,100],
+                preview: 'linear-gradient(90deg, #ff6b9d, #e91e63, #9c27b0, #e91e63)'
+            },
+            SUNRISE: {
+                name: 'Morning Sunrise',
+                colors: [[0.58,0.35],[0.55,0.38],[0.52,0.40],[0.50,0.42],[0.48,0.43],[0.45,0.43],[0.42,0.42],[0.40,0.40],[0.42,0.38],[0.45,0.36],[0.50,0.34],[0.54,0.33]],
+                brightness: [100,95,90,85,85,85,90,95,100,100,100,100],
+                preview: 'linear-gradient(90deg, #ff6b6b, #feca57, #ff9ff3, #ffeaa7)'
+            },
+            OCEAN: {
+                name: 'Deep Ocean',
+                colors: [[0.16,0.32],[0.18,0.34],[0.20,0.36],[0.23,0.37],[0.26,0.38],[0.28,0.37],[0.30,0.36],[0.28,0.35],[0.25,0.34],[0.22,0.33],[0.19,0.32],[0.17,0.31]],
+                brightness: [100,100,100,100,95,90,85,90,95,100,100,100],
+                preview: 'linear-gradient(90deg, #006266, #1289A7, #0fbcf9, #4bcffa)'
+            },
+            CANDLE: {
+                name: 'Candlelight',
+                colors: [[0.54,0.41],[0.52,0.42],[0.55,0.40],[0.53,0.43],[0.51,0.42],[0.54,0.41],[0.52,0.43],[0.55,0.42],[0.53,0.41],[0.50,0.44],[0.54,0.40],[0.52,0.43]],
+                brightness: [75,85,70,90,80,75,85,70,80,90,75,85],
+                preview: 'linear-gradient(90deg, #f39c12, #e67e22, #d35400, #f39c12)'
+            },
+            NORDIC: {
+                name: 'Nordic Twilight',
+                colors: [[0.34,0.28],[0.38,0.30],[0.42,0.34],[0.44,0.36],[0.46,0.38],[0.48,0.40],[0.46,0.41],[0.44,0.39],[0.42,0.36],[0.40,0.33],[0.38,0.30],[0.36,0.28]],
+                brightness: [70,75,80,85,85,85,85,80,75,70,70,70],
+                preview: 'linear-gradient(90deg, #a29bfe, #dfe6e9, #ffeaa7, #fab1a0)'
+            },
+            AURORA: {
+                name: 'Aurora',
+                colors: [[0.30,0.55],[0.28,0.50],[0.25,0.40],[0.22,0.30],[0.20,0.20],[0.22,0.15],[0.28,0.18],[0.32,0.22],[0.35,0.30],[0.32,0.40],[0.28,0.48],[0.25,0.52]],
+                brightness: [100,100,100,100,100,100,100,100,100,100,100,100],
+                preview: 'linear-gradient(90deg, #00b894, #00cec9, #6c5ce7, #a29bfe, #00b894)'
+            },
+            FIRE: {
+                name: 'Fireplace',
+                colors: [[0.65,0.33],[0.62,0.35],[0.60,0.38],[0.58,0.40],[0.55,0.42],[0.58,0.40],[0.62,0.36],[0.65,0.33],[0.63,0.32],[0.60,0.35],[0.57,0.38],[0.60,0.36]],
+                brightness: [80,90,100,90,80,70,85,95,90,85,75,80],
+                preview: 'linear-gradient(90deg, #ff4757, #ff6348, #ffa502, #ff7f50)'
+            }
+        };
+
+        // Animations
+        const ANIMATIONS = {
+            wave: { name: 'Wave', icon: '🌊', speed: 5000, description: 'Horizontal scroll' },
+            breathing: { name: 'Breathing', icon: '💨', speed: 8000, description: 'Gentle pulse' },
+            flicker: { name: 'Flicker', icon: '🕯️', speed: 1200, description: 'Candle effect' },
+            drift: { name: 'Drift', icon: '☁️', speed: 15000, description: 'Very slow' },
+            pulse: { name: 'Pulse', icon: '💫', speed: 1500, description: 'Fast sync' },
+            static: { name: 'Static', icon: '◼', speed: 0, description: 'No animation' }
+        };
+
+        // Rooms with light IDs
+        const ROOMS = {
+            dining: {
+                name: 'Dining Floor',
+                lights: ['fa08b99f-aa8a-4683-af76-c0e3fd566217','03e56936-b959-4687-b2de-5f2f670c8674','d1a940ac-c385-4857-88dc-bb89ff5ddfc4','ca82265e-1ee9-4337-a0d4-e44b46b21b1d','457a3777-b619-4765-92a0-7292cbbaab7b','ca9107e3-4f2c-4383-bf1a-67ae0765bbdf','52e22f83-a8c0-4ede-9a5e-68801c8c69f7','bd5ef4f9-7258-4ee8-af97-851b9713c147','dd90028e-5494-4585-9a75-cb593d1275ec','7fabbbed-4222-4bf4-baee-64977ebc5dde','f95f8da4-3dd0-4f80-91a5-ca8ad1a7ff22']
+            },
+            jamie: {
+                name: "Jamie's Office",
+                lights: ['7f91bd72-a9eb-4310-bf9a-461db7d8635c','74d25075-110e-4db5-b0e0-f3e60addb10b','d220cd0b-219f-4eae-8ea1-4fd20fa06275','e1e48801-86bd-4725-8098-c6249a8d8346']
+            },
+            master: {
+                name: 'Master Bedroom',
+                lights: ['dfcfd007-8106-435e-80d3-4dc09174b783','6ae37491-1a2f-470f-8204-9c0b7d01da8f','52b7c364-3a09-4ada-9b7d-f1d687e4a6bf','a15aef77-0db6-4480-a0a5-2a5aa4d74dd4','91b5c5db-296b-4491-b220-1cfa5231a875','b703f623-4cd0-4325-9d93-660c48fb0199','5396d289-b7e1-4bdb-90f6-2b57e0ad7fc5','0d806f9b-0416-47bb-8583-e5461fecb669']
+            },
+            bath: {
+                name: 'Master Bath',
+                lights: ['e15184b3-d09a-4b0a-b8b1-fd8a16f69a0c']
+            },
+            jordan: {
+                name: "Jordan's Room",
+                lights: ['a2a890cf-6d44-480d-887f-14c711ba4821','c75776ff-d48f-4ec8-b8cc-5dd45e50e9d7','9c26b749-70db-4492-996e-c0dad1e41cd1']
+            },
+            keston: {
+                name: "Keston's Room",
+                lights: ['2d2cc7f7-9987-44d6-be2c-86420050157c','585292eb-f27d-432d-a82f-db450c8c9fb2','d3bbd5c5-585c-48b1-a01d-4eb5a4d7f4c6']
+            },
+            tv: {
+                name: 'TV Room',
+                lights: ['aacd4d39-f3fa-42d4-9ac4-0abf1647854d']
+            },
+            balcony: {
+                name: 'Balcony',
+                lights: ['7b12ed85-aebe-4c3e-9471-ad8598443ef3']
+            }
+        };
+
+        // State
+        let selectedPalette = 'OCEAN';
+        let selectedAnimation = 'breathing';
+        let selectedRooms = ['dining'];
+        let animationInterval = null;
+        let phase = 0;
+        let isConnected = false;
+
+        // Initialize UI
+        function init() {
+            renderPalettes();
+            renderAnimations();
+            renderRooms();
+            testConnection();
+
+            document.getElementById('speedSlider').addEventListener('input', (e) => {
+                document.getElementById('speedValue').textContent = e.target.value + 'x';
+            });
+        }
+
+        function renderPalettes() {
+            const grid = document.getElementById('paletteGrid');
+            grid.innerHTML = '';
+            for (const [key, palette] of Object.entries(PALETTES)) {
+                const card = document.createElement('div');
+                card.className = 'palette-card' + (key === selectedPalette ? ' selected' : '');
+                card.innerHTML = `
+                    <div class="palette-preview" style="background: ${palette.preview}"></div>
+                    <div class="palette-name">${palette.name}</div>
+                `;
+                card.onclick = () => {
+                    selectedPalette = key;
+                    renderPalettes();
+                };
+                grid.appendChild(card);
+            }
+        }
+
+        function renderAnimations() {
+            const grid = document.getElementById('animationGrid');
+            grid.innerHTML = '';
+            for (const [key, anim] of Object.entries(ANIMATIONS)) {
+                const card = document.createElement('div');
+                card.className = 'animation-card' + (key === selectedAnimation ? ' selected' : '');
+                card.innerHTML = `
+                    <div class="animation-icon">${anim.icon}</div>
+                    <div class="animation-name">${anim.name}</div>
+                    <div class="animation-speed">${anim.description}</div>
+                `;
+                card.onclick = () => {
+                    selectedAnimation = key;
+                    renderAnimations();
+                };
+                grid.appendChild(card);
+            }
+        }
+
+        function renderRooms() {
+            const grid = document.getElementById('roomGrid');
+            grid.innerHTML = '';
+            for (const [key, room] of Object.entries(ROOMS)) {
+                const card = document.createElement('div');
+                card.className = 'room-card' + (selectedRooms.includes(key) ? ' selected' : '');
+                card.innerHTML = `
+                    <div class="room-name">${room.name}</div>
+                    <div class="room-lights">${room.lights.length} lights</div>
+                `;
+                card.onclick = () => {
+                    if (selectedRooms.includes(key)) {
+                        selectedRooms = selectedRooms.filter(r => r !== key);
+                    } else {
+                        selectedRooms.push(key);
+                    }
+                    renderRooms();
+                };
+                grid.appendChild(card);
+            }
+        }
+
+        function getApiUrl(path) {
+            if (CONFIG.useProxy) {
+                return `${CONFIG.proxyBase}${path}`;
+            }
+            return `https://${CONFIG.bridge}${path}`;
+        }
+
+        function getHeaders() {
+            if (CONFIG.useProxy) {
+                return { 'Content-Type': 'application/json' };
+            }
+            return {
+                'Content-Type': 'application/json',
+                'hue-application-key': CONFIG.apiKey
+            };
+        }
+
+        async function testConnection() {
+            try {
+                const url = getApiUrl('/clip/v2/resource/light');
+                const response = await fetch(url, { headers: getHeaders() });
+                if (response.ok) {
+                    isConnected = true;
+                    document.getElementById('statusDot').classList.add('connected');
+                    document.getElementById('statusText').textContent = 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '');
+                    log('Connected to Hue bridge' + (CONFIG.useProxy ? ' via proxy' : ''), 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+            } catch (e) {
+                if (CONFIG.useProxy) {
+                    log('Cannot connect - is server.py running?', 'error');
+                } else {
+                    log('Cannot connect - run: python3 server.py', 'error');
+                    log('Then visit http://localhost:8080/control-panel.html', 'info');
+                }
+            }
+        }
+
+        function log(message, type = '') {
+            const logEl = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = 'log-entry ' + type;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function getSelectedLights() {
+            let lights = [];
+            for (const roomKey of selectedRooms) {
+                lights = lights.concat(ROOMS[roomKey].lights);
+            }
+            return lights;
+        }
+
+        async function setLight(lightId, color, brightness, duration = 1000) {
+            try {
+                await fetch(getApiUrl(`/clip/v2/resource/light/${lightId}`), {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({
+                        on: { on: true },
+                        dimming: { brightness },
+                        color: { xy: { x: color[0], y: color[1] } },
+                        dynamics: { duration }
+                    })
+                });
+            } catch (e) {
+                // Ignore individual light errors
+            }
+        }
+
+        async function turnOffLight(lightId) {
+            try {
+                await fetch(getApiUrl(`/clip/v2/resource/light/${lightId}`), {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ on: { on: false } })
+                });
+            } catch (e) {}
+        }
+
+        function startAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+            }
+
+            const palette = PALETTES[selectedPalette];
+            const anim = ANIMATIONS[selectedAnimation];
+            const lights = getSelectedLights();
+            const speedMultiplier = parseFloat(document.getElementById('speedSlider').value);
+            const interval = anim.speed / speedMultiplier;
+
+            if (lights.length === 0) {
+                log('Please select at least one room', 'error');
+                return;
+            }
+
+            log(`Starting ${palette.name} + ${anim.name} on ${lights.length} lights`, 'info');
+
+            document.getElementById('statusDot').classList.add('running');
+            document.getElementById('statusText').textContent = `Running: ${palette.name} + ${anim.name}`;
+
+            phase = 0;
+
+            const runFrame = () => {
+                const paletteLen = palette.colors.length;
+                const promises = [];
+
+                lights.forEach((lightId, idx) => {
+                    let colorIndex;
+                    let brightness;
+
+                    switch (selectedAnimation) {
+                        case 'wave':
+                            colorIndex = (phase + idx * 2) % paletteLen;
+                            brightness = palette.brightness[colorIndex];
+                            break;
+                        case 'breathing':
+                            colorIndex = (phase + Math.floor(idx / 3)) % paletteLen;
+                            brightness = palette.brightness[colorIndex];
+                            break;
+                        case 'flicker':
+                            const offset = Math.floor(Math.random() * 4);
+                            colorIndex = (phase + offset) % paletteLen;
+                            brightness = 60 + Math.floor(Math.random() * 35);
+                            break;
+                        case 'drift':
+                            colorIndex = (phase + idx) % paletteLen;
+                            brightness = palette.brightness[colorIndex] * 0.75;
+                            break;
+                        case 'pulse':
+                            colorIndex = phase % paletteLen;
+                            brightness = palette.brightness[colorIndex];
+                            break;
+                        default:
+                            colorIndex = Math.floor(idx * paletteLen / lights.length);
+                            brightness = palette.brightness[colorIndex];
+                    }
+
+                    // Fire all requests in parallel
+                    promises.push(setLight(lightId, palette.colors[colorIndex], brightness, interval * 0.8));
+                });
+
+                // Don't await - let them run in parallel
+                Promise.all(promises);
+                phase = (phase + 1) % paletteLen;
+            };
+
+            runFrame();
+            animationInterval = setInterval(runFrame, interval);
+        }
+
+        function stopAnimation() {
+            if (animationInterval) {
+                clearInterval(animationInterval);
+                animationInterval = null;
+            }
+            document.getElementById('statusDot').classList.remove('running');
+            document.getElementById('statusText').textContent = isConnected ? 'Connected to bridge' : 'Not connected';
+            log('Animation stopped', 'info');
+        }
+
+        function setStatic() {
+            stopAnimation();
+            const palette = PALETTES[selectedPalette];
+            const lights = getSelectedLights();
+
+            if (lights.length === 0) {
+                log('Please select at least one room', 'error');
+                return;
+            }
+
+            log(`Setting static ${palette.name} on ${lights.length} lights`, 'info');
+
+            lights.forEach((lightId, idx) => {
+                const colorIndex = Math.floor(idx * palette.colors.length / lights.length);
+                setLight(lightId, palette.colors[colorIndex], palette.brightness[colorIndex], 2000);
+            });
+        }
+
+        function turnOff() {
+            stopAnimation();
+            const lights = getSelectedLights();
+            log(`Turning off ${lights.length} lights`, 'info');
+            lights.forEach(lightId => turnOffLight(lightId));
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+</html>
