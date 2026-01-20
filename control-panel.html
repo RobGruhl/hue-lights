@@ -301,6 +301,396 @@
             color: #fff;
             width: 200px;
         }
+
+        /* Tab Bar */
+        .tab-bar {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 5px;
+        }
+
+        .tab-bar .tab {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #888;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tab-bar .tab:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .tab-bar .tab.active {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Room Status Cards */
+        .room-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 15px;
+        }
+
+        .room-status-card {
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .room-status-card:hover {
+            background: rgba(0,0,0,0.4);
+        }
+
+        .room-status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .room-status-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .room-status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #666;
+        }
+
+        .room-status-dot.on {
+            background: #2ed573;
+            box-shadow: 0 0 8px rgba(46, 213, 115, 0.5);
+        }
+
+        .room-status-name {
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .btn-room-off {
+            padding: 6px 14px;
+            font-size: 0.85em;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-room-off:hover {
+            background: rgba(255, 71, 87, 0.3);
+        }
+
+        .btn-room-off:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .room-status-info {
+            color: #888;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+        }
+
+        .brightness-bar {
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .brightness-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #feca57, #ff9f43);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .color-swatches {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+
+        .room-status-loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .room-status-error {
+            text-align: center;
+            padding: 40px;
+            color: #ff4757;
+        }
+
+        /* Feature Request Card */
+        .feature-request-card {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px dashed rgba(255, 215, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        .feature-request-card:hover {
+            background: rgba(255, 215, 0, 0.2);
+            border-color: rgba(255, 215, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .feature-request-card .icon {
+            font-size: 1.5em;
+            margin-bottom: 5px;
+        }
+
+        .feature-request-card .label {
+            font-size: 0.85em;
+            color: #ffd700;
+        }
+
+        .feature-request-card .count {
+            font-size: 0.7em;
+            color: #888;
+            margin-top: 3px;
+        }
+
+        /* Feature Request Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #1a1a2e;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 1.5em;
+            cursor: pointer;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .modal-tabs {
+            display: flex;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-tab {
+            flex: 1;
+            padding: 12px;
+            background: none;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .modal-tab:hover {
+            color: #fff;
+        }
+
+        .modal-tab.active {
+            color: #fff;
+            border-bottom: 2px solid #ffd700;
+        }
+
+        .modal-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .modal-view {
+            display: none;
+        }
+
+        .modal-view.active {
+            display: block;
+        }
+
+        /* Request List */
+        .request-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .request-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .request-votes {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            min-width: 40px;
+        }
+
+        .vote-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #888;
+            width: 30px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8em;
+        }
+
+        .vote-btn:hover {
+            background: rgba(255, 215, 0, 0.3);
+            color: #ffd700;
+        }
+
+        .vote-count {
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .request-text {
+            flex: 1;
+            font-size: 0.9em;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+
+        .request-empty {
+            text-align: center;
+            color: #666;
+            padding: 40px 20px;
+        }
+
+        /* Submit Form */
+        .submit-form textarea {
+            width: 100%;
+            min-height: 120px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-family: inherit;
+            font-size: 0.9em;
+            resize: vertical;
+        }
+
+        .submit-form textarea:focus {
+            outline: none;
+            border-color: #ffd700;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.75em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .submit-btn {
+            margin-top: 15px;
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #ffd700, #ffb700);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -315,40 +705,88 @@
             </div>
             <div class="settings">
                 <div class="setting-group">
+                    <label>Brightness:</label>
+                    <input type="range" id="brightnessSlider" min="10" max="100" value="94">
+                    <span id="brightnessValue">94%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-bar">
+            <button class="tab active" data-tab="scenes" onclick="switchTab('scenes')">Scenes</button>
+            <button class="tab" data-tab="rooms" onclick="switchTab('rooms')">Rooms</button>
+        </div>
+
+        <!-- Scenes Tab -->
+        <div id="scenes-tab" class="tab-content active">
+            <div class="section">
+                <h2>Palette</h2>
+                <div class="palette-grid" id="paletteGrid"></div>
+            </div>
+
+            <div class="section">
+                <h2>Animation</h2>
+                <div class="animation-grid" id="animationGrid"></div>
+                <div class="setting-group" style="margin-top: 15px; justify-content: center;">
                     <label>Speed:</label>
                     <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1">
                     <span id="speedValue">1x</span>
                 </div>
             </div>
-        </div>
 
-        <div class="section">
-            <h2>Palette</h2>
-            <div class="palette-grid" id="paletteGrid"></div>
-        </div>
+            <div class="section">
+                <h2>Rooms</h2>
+                <div class="room-grid" id="roomGrid"></div>
+            </div>
 
-        <div class="section">
-            <h2>Animation</h2>
-            <div class="animation-grid" id="animationGrid"></div>
-        </div>
+            <div class="section">
+                <div class="controls">
+                    <button class="btn-start" onclick="startAnimation()">▶ Start Animation</button>
+                    <button class="btn-static" onclick="setStatic()">◼ Set Static</button>
+                    <button class="btn-stop" onclick="stopAnimation()">⏹ Stop</button>
+                    <button class="btn-off" onclick="turnOff()">Turn Off Lights</button>
+                </div>
+            </div>
 
-        <div class="section">
-            <h2>Rooms</h2>
-            <div class="room-grid" id="roomGrid"></div>
-        </div>
-
-        <div class="section">
-            <div class="controls">
-                <button class="btn-start" onclick="startAnimation()">▶ Start Animation</button>
-                <button class="btn-static" onclick="setStatic()">◼ Set Static</button>
-                <button class="btn-stop" onclick="stopAnimation()">⏹ Stop</button>
-                <button class="btn-off" onclick="turnOff()">Turn Off Lights</button>
+            <div class="section">
+                <h2>Log</h2>
+                <div class="log" id="log"></div>
             </div>
         </div>
 
-        <div class="section">
-            <h2>Log</h2>
-            <div class="log" id="log"></div>
+        <!-- Rooms Tab -->
+        <div id="rooms-tab" class="tab-content">
+            <div class="room-status-grid" id="roomStatusGrid">
+                <div class="room-status-loading">Loading room status...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Request Modal -->
+    <div class="modal-overlay" id="featureModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="modalTitle">Feature Requests</h3>
+                <button class="modal-close" onclick="closeFeatureModal()">&times;</button>
+            </div>
+            <div class="modal-tabs">
+                <button class="modal-tab active" data-view="list" onclick="switchModalView('list')">View Requests</button>
+                <button class="modal-tab" data-view="submit" onclick="switchModalView('submit')">Submit New</button>
+            </div>
+            <div class="modal-content">
+                <div class="modal-view active" id="requestListView">
+                    <div class="request-list" id="requestList">
+                        <div class="request-empty">Loading...</div>
+                    </div>
+                </div>
+                <div class="modal-view" id="requestSubmitView">
+                    <div class="submit-form">
+                        <textarea id="requestText" placeholder="Describe your feature request..." maxlength="2000"></textarea>
+                        <div class="char-counter"><span id="charCount">0</span>/2000</div>
+                        <button class="submit-btn" onclick="submitFeatureRequest()">Submit Request</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -495,12 +933,30 @@
             'whole-house': {
                 name: 'Whole House',
                 shellName: 'whole-house',
-                lights: []  // Composite - handled by shell script
+                get lights() {
+                    return [
+                        ...ROOMS.dining.lights,
+                        ...ROOMS.jamie.lights,
+                        ...ROOMS.master.lights,
+                        ...ROOMS.bath.lights,
+                        ...ROOMS.jordan.lights,
+                        ...ROOMS.keston.lights,
+                        ...ROOMS.tv.lights,
+                        ...ROOMS.balcony.lights
+                    ];
+                }
             },
             'adults-only': {
-                name: 'Adults Only',
+                name: 'House Minus Kids',
                 shellName: 'adults-only',
-                lights: []  // Composite - handled by shell script
+                get lights() {
+                    return [
+                        ...ROOMS.dining.lights,
+                        ...ROOMS.jamie.lights,
+                        ...ROOMS.master.lights,
+                        ...ROOMS.bath.lights
+                    ];
+                }
             }
         };
 
@@ -519,6 +975,10 @@
         const REQUEST_TIMEOUT = 5000;
         const MAX_FAILURES_BEFORE_RECONNECT = 3;
         const SCENE_STATUS_POLL_INTERVAL = 3000;
+
+        // Feature request state
+        let featureRequests = { palette: [], animation: [] };
+        let currentRequestType = 'palette';
 
         // Initialize UI
         function init() {
@@ -542,11 +1002,31 @@
                 document.getElementById('speedValue').textContent = e.target.value + 'x';
             });
 
+            document.getElementById('brightnessSlider').addEventListener('input', (e) => {
+                document.getElementById('brightnessValue').textContent = e.target.value + '%';
+            });
+
+            // Fetch feature requests
+            fetchFeatureRequests();
+
+            // Character count for textarea
+            document.getElementById('requestText').addEventListener('input', (e) => {
+                document.getElementById('charCount').textContent = e.target.value.length;
+            });
+
+            // Close modal on overlay click
+            document.getElementById('featureModal').addEventListener('click', (e) => {
+                if (e.target.id === 'featureModal') {
+                    closeFeatureModal();
+                }
+            });
+
             // Cleanup on page unload
             window.addEventListener('beforeunload', () => {
                 if (animationInterval) clearInterval(animationInterval);
                 if (healthCheckInterval) clearInterval(healthCheckInterval);
                 if (sceneStatusInterval) clearInterval(sceneStatusInterval);
+                if (roomStatusInterval) clearInterval(roomStatusInterval);
             });
         }
 
@@ -572,16 +1052,10 @@
             if (status.running) {
                 isAnimationRunning = true;
                 document.getElementById('statusDot').classList.add('running');
-                const paletteName = PALETTES[status.palette.toUpperCase()]?.name || status.palette;
-                const animName = ANIMATIONS[status.animation]?.name || status.animation;
-                document.getElementById('statusText').textContent = `Running: ${paletteName} + ${animName}`;
             } else if (isAnimationRunning) {
                 // Scene stopped externally
                 isAnimationRunning = false;
                 document.getElementById('statusDot').classList.remove('running');
-                document.getElementById('statusText').textContent = isConnected
-                    ? 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '')
-                    : 'Not connected';
             }
         }
 
@@ -601,6 +1075,18 @@
                 };
                 grid.appendChild(card);
             }
+
+            // Add feature request tile at the end
+            const requestCard = document.createElement('div');
+            requestCard.className = 'feature-request-card';
+            const paletteCount = featureRequests.palette.length;
+            requestCard.innerHTML = `
+                <div class="icon">💡</div>
+                <div class="label">Feature Request?</div>
+                <div class="count">${paletteCount} pending</div>
+            `;
+            requestCard.onclick = () => openFeatureModal('palette');
+            grid.appendChild(requestCard);
         }
 
         function renderAnimations() {
@@ -620,6 +1106,18 @@
                 };
                 grid.appendChild(card);
             }
+
+            // Add feature request tile at the end
+            const requestCard = document.createElement('div');
+            requestCard.className = 'feature-request-card';
+            const animCount = featureRequests.animation.length;
+            requestCard.innerHTML = `
+                <div class="icon">💡</div>
+                <div class="label">Feature Request?</div>
+                <div class="count">${animCount} pending</div>
+            `;
+            requestCard.onclick = () => openFeatureModal('animation');
+            grid.appendChild(requestCard);
         }
 
         function renderRooms() {
@@ -816,20 +1314,21 @@
             // Use server-side scene management if available
             if (CONFIG.useProxy) {
                 try {
+                    const brightness = parseInt(document.getElementById('brightnessSlider').value);
                     const response = await fetch('/api/scenes/start', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             palette: selectedPalette.toLowerCase(),
                             animation: selectedAnimation,
-                            rooms: shellRooms
+                            rooms: shellRooms,
+                            brightness: brightness
                         })
                     });
 
                     if (response.ok) {
                         isAnimationRunning = true;
                         document.getElementById('statusDot').classList.add('running');
-                        document.getElementById('statusText').textContent = `Running: ${palette.name} + ${anim.name}`;
                         log('Animation started via server', 'success');
                     } else {
                         const err = await response.json();
@@ -859,7 +1358,6 @@
             isAnimationRunning = true;
             consecutiveFailures = 0;
             document.getElementById('statusDot').classList.add('running');
-            document.getElementById('statusText').textContent = `Running: ${palette.name} + ${anim.name}`;
 
             phase = 0;
             let frameInProgress = false;
@@ -993,6 +1491,319 @@
             Promise.all(promises).then(() => {
                 log('Lights turned off', 'success');
             });
+        }
+
+        // ===== Room Status Tab =====
+        let currentTab = 'scenes';
+        let roomStatusInterval = null;
+        const ROOM_STATUS_REFRESH_INTERVAL = 4000;
+
+        // Use ROOMS directly for status display (composites now have lights via getters)
+        const STATUS_ROOMS = ROOMS;
+
+        function switchTab(tabName) {
+            currentTab = tabName;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab-bar .tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.tab === tabName);
+            });
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.toggle('active', content.id === `${tabName}-tab`);
+            });
+
+            // Manage room status refresh
+            if (tabName === 'rooms') {
+                fetchRoomStatus();
+                startRoomStatusRefresh();
+            } else {
+                stopRoomStatusRefresh();
+            }
+        }
+
+        function startRoomStatusRefresh() {
+            if (roomStatusInterval) return;
+            roomStatusInterval = setInterval(fetchRoomStatus, ROOM_STATUS_REFRESH_INTERVAL);
+        }
+
+        function stopRoomStatusRefresh() {
+            if (roomStatusInterval) {
+                clearInterval(roomStatusInterval);
+                roomStatusInterval = null;
+            }
+        }
+
+        async function fetchRoomStatus() {
+            if (!CONFIG.useProxy) {
+                document.getElementById('roomStatusGrid').innerHTML =
+                    '<div class="room-status-error">Room status requires server (run server.py)</div>';
+                return;
+            }
+
+            try {
+                const response = await fetch(getApiUrl('/clip/v2/resource/light'), {
+                    headers: getHeaders()
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const data = await response.json();
+                const lights = data.data || [];
+
+                // Build light state map
+                const lightStates = {};
+                for (const light of lights) {
+                    lightStates[light.id] = {
+                        on: light.on?.on || false,
+                        brightness: light.dimming?.brightness || 0,
+                        color: light.color?.xy || null
+                    };
+                }
+
+                renderRoomStatusCards(lightStates);
+            } catch (e) {
+                document.getElementById('roomStatusGrid').innerHTML =
+                    `<div class="room-status-error">Failed to fetch status: ${e.message}</div>`;
+            }
+        }
+
+        function renderRoomStatusCards(lightStates) {
+            const grid = document.getElementById('roomStatusGrid');
+            let html = '';
+
+            for (const [roomKey, room] of Object.entries(STATUS_ROOMS)) {
+                const roomLights = room.lights;
+                if (roomLights.length === 0) continue;
+
+                // Calculate room stats
+                let onCount = 0;
+                let totalBrightness = 0;
+                const colors = [];
+
+                for (const lightId of roomLights) {
+                    const state = lightStates[lightId];
+                    if (state && state.on) {
+                        onCount++;
+                        totalBrightness += state.brightness;
+                        if (state.color) {
+                            colors.push(state.color);
+                        }
+                    }
+                }
+
+                const avgBrightness = onCount > 0 ? Math.round(totalBrightness / onCount) : 0;
+                const isOn = onCount > 0;
+
+                // Get unique colors (limit to 6)
+                const uniqueColors = getUniqueColors(colors, 6);
+
+                html += `
+                    <div class="room-status-card">
+                        <div class="room-status-header">
+                            <div class="room-status-title">
+                                <div class="room-status-dot ${isOn ? 'on' : ''}"></div>
+                                <span class="room-status-name">${room.name}</span>
+                            </div>
+                            <button class="btn-room-off" onclick="turnOffRoom('${roomKey}')" ${!isOn ? 'disabled' : ''}>
+                                OFF
+                            </button>
+                        </div>
+                        <div class="room-status-info">${onCount}/${roomLights.length} lights on</div>
+                        <div class="brightness-bar">
+                            <div class="brightness-fill" style="width: ${avgBrightness}%"></div>
+                        </div>
+                        <div class="room-status-info">${avgBrightness}% avg brightness</div>
+                        <div class="color-swatches">
+                            ${uniqueColors.map(c => `<div class="color-swatch" style="background: ${xyToRgb(c.x, c.y)}"></div>`).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = html;
+        }
+
+        function getUniqueColors(colors, maxCount) {
+            if (colors.length === 0) return [];
+
+            // Simple deduplication based on proximity
+            const unique = [];
+            for (const color of colors) {
+                const isDuplicate = unique.some(c =>
+                    Math.abs(c.x - color.x) < 0.05 && Math.abs(c.y - color.y) < 0.05
+                );
+                if (!isDuplicate) {
+                    unique.push(color);
+                    if (unique.length >= maxCount) break;
+                }
+            }
+            return unique;
+        }
+
+        // Convert CIE xy to approximate RGB for display
+        function xyToRgb(x, y) {
+            // Simplified conversion for display purposes
+            const z = 1.0 - x - y;
+            const Y = 1.0;
+            const X = (Y / y) * x;
+            const Z = (Y / y) * z;
+
+            let r = X * 1.656492 - Y * 0.354851 - Z * 0.255038;
+            let g = -X * 0.707196 + Y * 1.655397 + Z * 0.036152;
+            let b = X * 0.051713 - Y * 0.121364 + Z * 1.011530;
+
+            // Gamma correction
+            r = r <= 0.0031308 ? 12.92 * r : 1.055 * Math.pow(r, 1/2.4) - 0.055;
+            g = g <= 0.0031308 ? 12.92 * g : 1.055 * Math.pow(g, 1/2.4) - 0.055;
+            b = b <= 0.0031308 ? 12.92 * b : 1.055 * Math.pow(b, 1/2.4) - 0.055;
+
+            // Clamp and convert to hex
+            r = Math.max(0, Math.min(255, Math.round(r * 255)));
+            g = Math.max(0, Math.min(255, Math.round(g * 255)));
+            b = Math.max(0, Math.min(255, Math.round(b * 255)));
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        async function turnOffRoom(roomKey) {
+            const room = STATUS_ROOMS[roomKey];
+            if (!room) return;
+
+            const lights = room.lights;
+            if (lights.length === 0) return;
+
+            log(`Turning off ${room.name}`, 'info');
+
+            // Disable button while processing
+            const buttons = document.querySelectorAll('.btn-room-off');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const promises = lights.map(lightId => turnOffLight(lightId));
+            await Promise.all(promises);
+
+            log(`${room.name} turned off`, 'success');
+
+            // Refresh status immediately
+            await fetchRoomStatus();
+        }
+
+        // ===== Feature Requests =====
+
+        // Fetch feature requests from server
+        async function fetchFeatureRequests() {
+            if (!CONFIG.useProxy) return;
+            try {
+                const response = await fetch('/api/feature-requests');
+                if (response.ok) {
+                    featureRequests = await response.json();
+                    renderPalettes();
+                    renderAnimations();
+                }
+            } catch (e) {
+                // Silently ignore
+            }
+        }
+
+        // Open the feature request modal
+        function openFeatureModal(type) {
+            currentRequestType = type;
+            document.getElementById('modalTitle').textContent =
+                type === 'palette' ? 'Palette Requests' : 'Animation Requests';
+            renderRequestList();
+            document.getElementById('featureModal').classList.add('active');
+        }
+
+        // Close modal
+        function closeFeatureModal() {
+            document.getElementById('featureModal').classList.remove('active');
+            document.getElementById('requestText').value = '';
+            document.getElementById('charCount').textContent = '0';
+        }
+
+        // Switch between list and submit views
+        function switchModalView(view) {
+            document.querySelectorAll('.modal-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.dataset.view === view);
+            });
+            document.getElementById('requestListView').classList.toggle('active', view === 'list');
+            document.getElementById('requestSubmitView').classList.toggle('active', view === 'submit');
+        }
+
+        // Render the request list
+        function renderRequestList() {
+            const list = document.getElementById('requestList');
+            const requests = featureRequests[currentRequestType] || [];
+
+            if (requests.length === 0) {
+                list.innerHTML = '<div class="request-empty">No requests yet. Be the first!</div>';
+                return;
+            }
+
+            // Sort by votes descending
+            const sorted = [...requests].sort((a, b) => b.votes - a.votes);
+
+            list.innerHTML = sorted.map(req => `
+                <div class="request-item">
+                    <div class="request-votes">
+                        <button class="vote-btn" onclick="upvoteRequest('${req.id}')">▲</button>
+                        <span class="vote-count">${req.votes}</span>
+                    </div>
+                    <div class="request-text">${escapeHtml(req.text)}</div>
+                </div>
+            `).join('');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Submit a new feature request
+        async function submitFeatureRequest() {
+            const text = document.getElementById('requestText').value.trim();
+            if (!text) return;
+
+            try {
+                const response = await fetch('/api/feature-requests', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        type: currentRequestType,
+                        text: text
+                    })
+                });
+
+                if (response.ok) {
+                    await fetchFeatureRequests();
+                    document.getElementById('requestText').value = '';
+                    document.getElementById('charCount').textContent = '0';
+                    switchModalView('list');
+                    log(`Feature request submitted for ${currentRequestType}`, 'success');
+                }
+            } catch (e) {
+                log('Failed to submit request', 'error');
+            }
+        }
+
+        // Upvote a request
+        async function upvoteRequest(id) {
+            try {
+                const response = await fetch(`/api/feature-requests/${id}/upvote`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    await fetchFeatureRequests();
+                    renderRequestList();
+                }
+            } catch (e) {
+                // Silently ignore
+            }
         }
 
         // Start

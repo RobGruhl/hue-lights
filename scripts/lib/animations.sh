@@ -15,22 +15,33 @@ set_gradient() {
     local duration=${3:-3000}
     local brightness=${4:-100}
 
+    # Scale brightness by global BRIGHTNESS setting (default 100%)
+    local bri_scale=${BRIGHTNESS:-100}
+    local scaled_bri=$(( brightness * bri_scale / 100 ))
+
     local p0=$(( phase % PALETTE_LEN ))
     local p1=$(( (phase + 2) % PALETTE_LEN ))
     local p2=$(( (phase + 4) % PALETTE_LEN ))
     local p3=$(( (phase + 6) % PALETTE_LEN ))
     local p4=$(( (phase + 8) % PALETTE_LEN ))
 
+    # Scale individual point brightness
+    local b0=$(( ${CB[$p0]} * bri_scale / 100 ))
+    local b1=$(( ${CB[$p1]} * bri_scale / 100 ))
+    local b2=$(( ${CB[$p2]} * bri_scale / 100 ))
+    local b3=$(( ${CB[$p3]} * bri_scale / 100 ))
+    local b4=$(( ${CB[$p4]} * bri_scale / 100 ))
+
     curl -sk -X PUT "https://$HUE_BRIDGE/clip/v2/resource/light/$id" \
       -H "hue-application-key: $HUE_USER" \
       -H "Content-Type: application/json" \
       -d "{\"gradient\":{\"points\":[
-        {\"color\":{\"xy\":{\"x\":${CX[$p0]},\"y\":${CY[$p0]}}},\"dimming\":{\"brightness\":${CB[$p0]}}},
-        {\"color\":{\"xy\":{\"x\":${CX[$p1]},\"y\":${CY[$p1]}}},\"dimming\":{\"brightness\":${CB[$p1]}}},
-        {\"color\":{\"xy\":{\"x\":${CX[$p2]},\"y\":${CY[$p2]}}},\"dimming\":{\"brightness\":${CB[$p2]}}},
-        {\"color\":{\"xy\":{\"x\":${CX[$p3]},\"y\":${CY[$p3]}}},\"dimming\":{\"brightness\":${CB[$p3]}}},
-        {\"color\":{\"xy\":{\"x\":${CX[$p4]},\"y\":${CY[$p4]}}},\"dimming\":{\"brightness\":${CB[$p4]}}}
-      ]},\"dynamics\":{\"duration\":$duration},\"dimming\":{\"brightness\":$brightness}}" > /dev/null 2>&1
+        {\"color\":{\"xy\":{\"x\":${CX[$p0]},\"y\":${CY[$p0]}}},\"dimming\":{\"brightness\":$b0}},
+        {\"color\":{\"xy\":{\"x\":${CX[$p1]},\"y\":${CY[$p1]}}},\"dimming\":{\"brightness\":$b1}},
+        {\"color\":{\"xy\":{\"x\":${CX[$p2]},\"y\":${CY[$p2]}}},\"dimming\":{\"brightness\":$b2}},
+        {\"color\":{\"xy\":{\"x\":${CX[$p3]},\"y\":${CY[$p3]}}},\"dimming\":{\"brightness\":$b3}},
+        {\"color\":{\"xy\":{\"x\":${CX[$p4]},\"y\":${CY[$p4]}}},\"dimming\":{\"brightness\":$b4}}
+      ]},\"dynamics\":{\"duration\":$duration},\"dimming\":{\"brightness\":$scaled_bri}}" > /dev/null 2>&1
 }
 
 # Set a solid color light
@@ -43,10 +54,14 @@ set_solid() {
     local p=$(( phase % PALETTE_LEN ))
     local bri=${brightness_override:-${CB[$p]}}
 
+    # Scale brightness by global BRIGHTNESS setting (default 100%)
+    local bri_scale=${BRIGHTNESS:-100}
+    local scaled_bri=$(( bri * bri_scale / 100 ))
+
     curl -sk -X PUT "https://$HUE_BRIDGE/clip/v2/resource/light/$id" \
       -H "hue-application-key: $HUE_USER" \
       -H "Content-Type: application/json" \
-      -d "{\"color\":{\"xy\":{\"x\":${CX[$p]},\"y\":${CY[$p]}}},\"dimming\":{\"brightness\":$bri},\"dynamics\":{\"duration\":$duration}}" > /dev/null 2>&1
+      -d "{\"color\":{\"xy\":{\"x\":${CX[$p]},\"y\":${CY[$p]}}},\"dimming\":{\"brightness\":$scaled_bri},\"dynamics\":{\"duration\":$duration}}" > /dev/null 2>&1
 }
 
 # =============================================================================

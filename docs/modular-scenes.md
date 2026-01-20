@@ -5,29 +5,31 @@ Mix and match any palette with any animation on any room(s).
 ## Quick Start
 
 ```bash
-./scripts/run-scene.sh <palette> <animation> <room> [room2] [room3] ...
+./scripts/run-scene.sh <palette> <animation> <brightness> <room> [room2] [room3] ...
 ```
+
+**Brightness**: 10-100% (default: 94). Scales the overall intensity of the palette.
 
 ## Examples
 
 ```bash
-# Deep ocean breathing across the whole house
-./scripts/run-scene.sh ocean breathing whole-house
+# Deep ocean breathing across the whole house at 94% brightness
+./scripts/run-scene.sh ocean breathing 94 whole-house
 
-# Vaporwave wave on dining room and Jamie's office
-./scripts/run-scene.sh vaporwave wave dining jamies-office
+# Vaporwave wave on dining room and Jamie's office at full brightness
+./scripts/run-scene.sh vaporwave wave 100 dining jamies-office
 
-# Candlelight flicker just on the Signes (no kitchen)
-./scripts/run-scene.sh candle flicker dining-signes-only
+# Candlelight flicker just on the Signes at 80%
+./scripts/run-scene.sh candle flicker 80 dining-signes-only
 
-# Nordic twilight drift in bedrooms
-./scripts/run-scene.sh nordic drift master-bedroom jordans-room kestons-room
+# Nordic twilight drift in bedrooms - dim for sleeping
+./scripts/run-scene.sh nordic drift 50 master-bedroom jordans-room kestons-room
 
-# Aurora northern lights pulse for a party
-./scripts/run-scene.sh aurora pulse whole-house
+# Aurora northern lights pulse for a party - bright!
+./scripts/run-scene.sh aurora pulse 100 whole-house
 
 # Static sunrise colors in dining room (no animation)
-./scripts/run-scene.sh sunrise static dining
+./scripts/run-scene.sh sunrise static 94 dining
 ```
 
 ---
@@ -85,17 +87,17 @@ Mix and match any palette with any animation on any room(s).
 
 ## Combining Multiple Rooms
 
-Just list them after the animation:
+Just list them after the brightness:
 
 ```bash
 # Two rooms
-./scripts/run-scene.sh vaporwave wave dining jamies-office
+./scripts/run-scene.sh vaporwave wave 100 dining jamies-office
 
 # Three rooms
-./scripts/run-scene.sh romantic pulse master-bedroom jordans-room kestons-room
+./scripts/run-scene.sh romantic pulse 94 master-bedroom jordans-room kestons-room
 
 # Custom combo
-./scripts/run-scene.sh ocean breathing dining master-bedroom balcony
+./scripts/run-scene.sh ocean breathing 80 dining master-bedroom balcony
 ```
 
 ---

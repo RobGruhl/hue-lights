@@ -1,12 +1,12 @@
 #!/bin/bash
 # run-scene.sh - Modular scene runner
-# Usage: ./run-scene.sh <palette> <animation> <room> [room2] [room3] ...
+# Usage: ./run-scene.sh <palette> <animation> <brightness> <room> [room2] [room3] ...
 #
 # Examples:
-#   ./run-scene.sh ocean breathing whole-house
-#   ./run-scene.sh vaporwave wave dining
-#   ./run-scene.sh nordic drift master-bedroom jamies-office
-#   ./run-scene.sh candle flicker dining
+#   ./run-scene.sh ocean breathing 94 whole-house
+#   ./run-scene.sh vaporwave wave 100 dining
+#   ./run-scene.sh nordic drift 50 master-bedroom jamies-office
+#   ./run-scene.sh candle flicker 80 dining
 #
 # Use --list to see available options:
 #   ./run-scene.sh --list palettes
@@ -38,13 +38,14 @@ source "$SCRIPT_DIR/lib/animations.sh"
 
 show_help() {
     cat <<EOF
-Usage: $(basename "$0") <palette> <animation> <room> [room2] [room3] ...
+Usage: $(basename "$0") <palette> <animation> <brightness> <room> [room2] [room3] ...
 
 Run a lighting scene by combining a color palette, animation style, and rooms.
 
 Arguments:
   palette    - Color palette to use (e.g., ocean, vaporwave, nordic)
   animation  - Animation pattern (e.g., wave, breathing, drift)
+  brightness - Brightness level 10-100 (default: 94)
   room       - One or more rooms to apply the scene to
 
 Options:
@@ -54,13 +55,13 @@ Options:
   --help, -h         Show this help message
 
 Examples:
-  $(basename "$0") ocean breathing whole-house
-  $(basename "$0") vaporwave wave dining jamies-office
-  $(basename "$0") candle flicker dining
-  $(basename "$0") nordic drift master-bedroom
+  $(basename "$0") ocean breathing 94 whole-house
+  $(basename "$0") vaporwave wave 100 dining jamies-office
+  $(basename "$0") candle flicker 80 dining
+  $(basename "$0") nordic drift 50 master-bedroom
 
 Tips:
-  - Combine multiple rooms: just list them after the animation
+  - Combine multiple rooms: just list them after brightness
   - Use 'static' animation for no movement
   - Use Ctrl+C to stop running animations
 EOF
@@ -95,16 +96,18 @@ fi
 # PARSE ARGUMENTS
 # =============================================================================
 
-if [[ $# -lt 3 ]]; then
+if [[ $# -lt 4 ]]; then
     echo "Error: Missing arguments" >&2
-    echo "Usage: $(basename "$0") <palette> <animation> <room> [room2] ..." >&2
+    echo "Usage: $(basename "$0") <palette> <animation> <brightness> <room> [room2] ..." >&2
     echo "Use --help for more information" >&2
     exit 1
 fi
 
 PALETTE=$(echo "$1" | tr '[:lower:]' '[:upper:]')  # Uppercase for palette lookup
 ANIMATION="$2"
-shift 2
+BRIGHTNESS="$3"
+export BRIGHTNESS
+shift 3
 ROOMS=("$@")
 
 # =============================================================================
@@ -163,7 +166,7 @@ echo "  Gradient: $GRADIENT_COUNT, Solid: $SOLID_COUNT"
 # =============================================================================
 
 echo ""
-echo "Starting: $PALETTE + $ANIMATION on ${ROOMS[*]}"
+echo "Starting: $PALETTE + $ANIMATION @ ${BRIGHTNESS}% on ${ROOMS[*]}"
 echo "================================================"
 echo ""
 
