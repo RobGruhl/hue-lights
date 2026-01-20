@@ -34,22 +34,6 @@
             background-clip: text;
         }
 
-        .subtitle {
-            text-align: center;
-            color: #888;
-            margin-bottom: 30px;
-        }
-
-        .status-bar {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
         .status-indicator {
             display: flex;
             align-items: center;
@@ -57,6 +41,7 @@
         }
 
         .status-dot {
+            display: inline-block;
             width: 12px;
             height: 12px;
             border-radius: 50%;
@@ -65,16 +50,6 @@
 
         .status-dot.connected {
             background: #2ed573;
-        }
-
-        .status-dot.running {
-            background: #ffa502;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
         }
 
         .section {
@@ -232,15 +207,6 @@
         .btn-stop:hover {
             transform: scale(1.05);
             box-shadow: 0 5px 20px rgba(255, 71, 87, 0.4);
-        }
-
-        .btn-static {
-            background: linear-gradient(135deg, #5f27cd, #341f97);
-            color: #fff;
-        }
-
-        .btn-static:hover {
-            transform: scale(1.05);
         }
 
         .btn-off {
@@ -696,21 +662,6 @@
 <body>
     <div class="container">
         <h1>Hue Control Panel</h1>
-        <p class="subtitle">Mix palettes, animations, and rooms</p>
-
-        <div class="status-bar">
-            <div class="status-indicator">
-                <div class="status-dot" id="statusDot"></div>
-                <span id="statusText">Not connected</span>
-            </div>
-            <div class="settings">
-                <div class="setting-group">
-                    <label>Brightness:</label>
-                    <input type="range" id="brightnessSlider" min="10" max="100" value="94">
-                    <span id="brightnessValue">94%</span>
-                </div>
-            </div>
-        </div>
 
         <div class="tab-bar">
             <button class="tab active" data-tab="scenes" onclick="switchTab('scenes')">Scenes</button>
@@ -722,6 +673,11 @@
             <div class="section">
                 <h2>Palette</h2>
                 <div class="palette-grid" id="paletteGrid"></div>
+                <div class="setting-group" style="margin-top: 15px; justify-content: center;">
+                    <label>Brightness:</label>
+                    <input type="range" id="brightnessSlider" min="10" max="100" value="94">
+                    <span id="brightnessValue">94%</span>
+                </div>
             </div>
 
             <div class="section">
@@ -742,14 +698,19 @@
             <div class="section">
                 <div class="controls">
                     <button class="btn-start" onclick="startAnimation()">▶ Start Animation</button>
-                    <button class="btn-static" onclick="setStatic()">◼ Set Static</button>
                     <button class="btn-stop" onclick="stopAnimation()">⏹ Stop</button>
                     <button class="btn-off" onclick="turnOff()">Turn Off Lights</button>
                 </div>
             </div>
 
             <div class="section">
-                <h2>Log</h2>
+                <h2 style="display: flex; align-items: center; gap: 15px;">
+                    Log
+                    <span class="status-indicator">
+                        <span class="status-dot" id="statusDot"></span>
+                        <span id="statusText">Not connected</span>
+                    </span>
+                </h2>
                 <div class="log" id="log"></div>
             </div>
         </div>
@@ -874,12 +835,19 @@
                 colors: [[0.45,0.15],[0.15,0.25],[0.25,0.65],[0.32,0.12],[0.60,0.38],[0.68,0.31],[0.20,0.15],[0.55,0.25],[0.45,0.15],[0.15,0.25],[0.32,0.12],[0.68,0.31]],
                 brightness: [100,100,100,100,100,100,100,100,100,100,100,100],
                 preview: 'linear-gradient(90deg, #ff1493, #00bfff, #32cd32, #9400d3, #ff4500, #ff1493)'
+            },
+            SEAHAWKS: {
+                name: 'Seahawks',
+                colors: [[0.18,0.18],[0.34,0.55],[0.18,0.18],[0.30,0.32],[0.34,0.55],[0.18,0.18],[0.34,0.55],[0.30,0.32],[0.18,0.18],[0.34,0.55],[0.30,0.32],[0.34,0.55]],
+                brightness: [100,100,100,90,100,100,100,90,100,100,90,100],
+                preview: 'linear-gradient(90deg, #002244, #69BE28, #A5ACAF, #002244, #69BE28)'
             }
         };
 
         // Animations
         const ANIMATIONS = {
             wave: { name: 'Wave', icon: '🌊', speed: 5000, description: 'Horizontal scroll' },
+            sportswave: { name: 'Sports Wave', icon: '🏈', speed: 800, description: 'Fast W→E' },
             breathing: { name: 'Breathing', icon: '💨', speed: 8000, description: 'Gentle pulse' },
             flicker: { name: 'Flicker', icon: '🕯️', speed: 1200, description: 'Candle effect' },
             drift: { name: 'Drift', icon: '☁️', speed: 15000, description: 'Very slow' },
@@ -1051,11 +1019,9 @@
         function updateSceneStatusUI(status) {
             if (status.running) {
                 isAnimationRunning = true;
-                document.getElementById('statusDot').classList.add('running');
             } else if (isAnimationRunning) {
                 // Scene stopped externally
                 isAnimationRunning = false;
-                document.getElementById('statusDot').classList.remove('running');
             }
         }
 
@@ -1176,9 +1142,7 @@
                     isConnected = true;
                     consecutiveFailures = 0;
                     document.getElementById('statusDot').classList.add('connected');
-                    if (!isAnimationRunning) {
-                        document.getElementById('statusText').textContent = 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '');
-                    }
+                    document.getElementById('statusText').textContent = 'Connected' + (CONFIG.useProxy ? ' (proxy)' : '');
                     if (!silent || wasDisconnected) {
                         log('Connected to Hue bridge' + (CONFIG.useProxy ? ' via proxy' : ''), 'success');
                     }
@@ -1328,7 +1292,6 @@
 
                     if (response.ok) {
                         isAnimationRunning = true;
-                        document.getElementById('statusDot').classList.add('running');
                         log('Animation started via server', 'success');
                     } else {
                         const err = await response.json();
@@ -1357,7 +1320,6 @@
 
             isAnimationRunning = true;
             consecutiveFailures = 0;
-            document.getElementById('statusDot').classList.add('running');
 
             phase = 0;
             let frameInProgress = false;
@@ -1441,39 +1403,7 @@
                 animationInterval = null;
             }
             consecutiveFailures = 0;
-            document.getElementById('statusDot').classList.remove('running');
-            document.getElementById('statusText').textContent = isConnected
-                ? 'Connected to bridge' + (CONFIG.useProxy ? ' (via proxy)' : '')
-                : 'Not connected';
             log('Animation stopped', 'info');
-        }
-
-        function setStatic() {
-            stopAnimation();
-
-            if (!isConnected) {
-                log('Not connected to bridge - please wait for reconnection', 'error');
-                return;
-            }
-
-            const palette = PALETTES[selectedPalette];
-            const lights = getSelectedLights();
-
-            if (lights.length === 0) {
-                log('Please select at least one room', 'error');
-                return;
-            }
-
-            log(`Setting static ${palette.name} on ${lights.length} lights`, 'info');
-
-            const promises = lights.map((lightId, idx) => {
-                const colorIndex = Math.floor(idx * palette.colors.length / lights.length);
-                return setLight(lightId, palette.colors[colorIndex], palette.brightness[colorIndex], 2000);
-            });
-
-            Promise.all(promises).then(() => {
-                log('Static scene applied', 'success');
-            });
         }
 
         function turnOff() {

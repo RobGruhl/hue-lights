@@ -133,4 +133,12 @@ list_palettes() {
     echo "  AURORA     - Green/purple/blue (northern lights)"
     echo "  FIRE       - Deep reds/oranges (fireplace)"
     echo "  ROLLERDISCO - Hot pink/blue/green/purple (party!)"
+    echo "  SEAHAWKS   - Navy/action green/gray (go hawks!)"
 }
+
+# =============================================================================
+# SEAHAWKS - Seattle Seahawks team colors
+# =============================================================================
+P_SEAHAWKS_X=(0.18 0.34 0.18 0.30 0.34 0.18 0.34 0.30 0.18 0.34 0.30 0.34)
+P_SEAHAWKS_Y=(0.18 0.55 0.18 0.32 0.55 0.18 0.55 0.32 0.18 0.55 0.32 0.55)
+P_SEAHAWKS_B=(100  100  100  90   100  100  100  90   100  100  90   100)
