@@ -21,8 +21,7 @@ set_gradient() {
     local p3=$(( (phase + 6) % PALETTE_LEN ))
     local p4=$(( (phase + 8) % PALETTE_LEN ))
 
-    curl -sk -X PUT "https://$HUE_BRIDGE/clip/v2/resource/light/$id" \
-      -H "hue-application-key: $HUE_USER" \
+    curl -s -X PUT "http://localhost:8080/api/clip/v2/resource/light/$id" \
       -H "Content-Type: application/json" \
       -d "{\"gradient\":{\"points\":[
         {\"color\":{\"xy\":{\"x\":${CX[$p0]},\"y\":${CY[$p0]}}},\"dimming\":{\"brightness\":${CB[$p0]}}},
@@ -45,8 +44,7 @@ set_solid() {
     local scaled_bri=$(( palette_bri * ${BRIGHTNESS:-100} / 100 ))
     local bri=${brightness_override:-$scaled_bri}
 
-    curl -sk -X PUT "https://$HUE_BRIDGE/clip/v2/resource/light/$id" \
-      -H "hue-application-key: $HUE_USER" \
+    curl -s -X PUT "http://localhost:8080/api/clip/v2/resource/light/$id" \
       -H "Content-Type: application/json" \
       -d "{\"on\":{\"on\":true},\"color\":{\"xy\":{\"x\":${CX[$p]},\"y\":${CY[$p]}}},\"dimming\":{\"brightness\":$bri},\"dynamics\":{\"duration\":$duration}}" > /dev/null 2>&1
 }

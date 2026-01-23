@@ -203,10 +203,9 @@ def handle_light_event(event):
                 trigger_override_shutdown()
                 return
 
-        # Check for color/brightness changes (weaker signal, use stricter timing)
+        # Check for color/brightness changes (now reliable since animations route through server)
         if "color" in item or "dimming" in item:
             current_time_ms = int(time.time() * 1000)
-            # Only trigger on color changes if well outside debounce window
             if (current_time_ms - scene_state.get("last_command_time", 0)) > (DEBOUNCE_WINDOW_MS * 2):
                 log(f"Override detected: Light {light_id[:8]}... changed externally")
                 trigger_override_shutdown()
@@ -674,6 +673,13 @@ class HueProxyHandler(SimpleHTTPRequestHandler):
 
     def proxy_request(self, method):
         """Proxy request to Hue bridge with timeout"""
+        global scene_state
+
+        # Track light commands for override detection
+        # This keeps the debounce window current when animations route through the server
+        if method == 'PUT' and '/resource/light/' in self.path:
+            scene_state["last_command_time"] = int(time.time() * 1000)
+
         # Remove /api prefix and build bridge URL
         bridge_path = self.path[4:]  # Remove '/api'
         url = f"https://{HUE_BRIDGE}{bridge_path}"
