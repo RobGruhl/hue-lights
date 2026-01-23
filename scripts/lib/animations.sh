@@ -13,7 +13,7 @@ set_gradient() {
     local id=$1
     local phase=$2
     local duration=${3:-3000}
-    local brightness=${4:-100}
+    local brightness=${4:-${BRIGHTNESS:-100}}
 
     local p0=$(( phase % PALETTE_LEN ))
     local p1=$(( (phase + 2) % PALETTE_LEN ))
@@ -41,7 +41,9 @@ set_solid() {
     local brightness_override=$4
 
     local p=$(( phase % PALETTE_LEN ))
-    local bri=${brightness_override:-${CB[$p]}}
+    local palette_bri=${CB[$p]}
+    local scaled_bri=$(( palette_bri * ${BRIGHTNESS:-100} / 100 ))
+    local bri=${brightness_override:-$scaled_bri}
 
     curl -sk -X PUT "https://$HUE_BRIDGE/clip/v2/resource/light/$id" \
       -H "hue-application-key: $HUE_USER" \
