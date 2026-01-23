@@ -236,7 +236,7 @@ def event_stream_monitor():
 
             log("EventStream: Connecting to bridge...")
 
-            with urllib.request.urlopen(req, context=ctx, timeout=30) as response:
+            with urllib.request.urlopen(req, context=ctx, timeout=None) as response:
                 event_monitor["connected"] = True
                 log("EventStream: Connected, monitoring for overrides")
 
