@@ -109,6 +109,19 @@ ROOM_LIGHTS["bedrooms"] = (
     ROOM_LIGHTS["kestons-room"]
 )
 
+# Base rooms (not composites) - ordered small-to-large for granular backoff
+# Smaller subsets first so "kitchen" matches before "dining" (which includes kitchen)
+BASE_ROOMS = ["dining-signes-only", "kitchen", "dining", "jamies-office",
+              "master-bedroom", "master-bath", "jordans-room", "kestons-room",
+              "tv-room", "balcony"]
+
+def get_base_room_for_light(light_id):
+    """Return the smallest base room containing this light (granular backoff)"""
+    for room in BASE_ROOMS:
+        if light_id in ROOM_LIGHTS.get(room, []):
+            return room
+    return None
+
 def get_light_ids_for_rooms(rooms):
     """Get all light IDs for a list of room names"""
     light_ids = set()
@@ -126,6 +139,7 @@ scene_state = {
     "animation": None,
     "rooms": [],
     "light_ids": set(),  # Light UUIDs being animated
+    "backed_off_lights": set(),  # Lights excluded due to external override
     "started_at": None,
     "last_command_time": 0,  # Timestamp of last command we sent
 }
@@ -194,13 +208,17 @@ def handle_light_event(event):
         if light_id not in scene_state.get("light_ids", set()):
             continue
 
+        # Skip already backed-off lights
+        if light_id in scene_state.get("backed_off_lights", set()):
+            continue
+
         # Check if light was turned off (strongest override signal)
         on_state = item.get("on", {})
         if on_state.get("on") is False:
             current_time_ms = int(time.time() * 1000)
             if is_external_change(current_time_ms):
                 log(f"Override detected: Light {light_id[:8]}... turned OFF externally")
-                trigger_override_shutdown()
+                trigger_room_backoff(light_id)
                 return
 
         # Check for color/brightness changes (now reliable since animations route through server)
@@ -208,13 +226,30 @@ def handle_light_event(event):
             current_time_ms = int(time.time() * 1000)
             if (current_time_ms - scene_state.get("last_command_time", 0)) > (DEBOUNCE_WINDOW_MS * 2):
                 log(f"Override detected: Light {light_id[:8]}... changed externally")
-                trigger_override_shutdown()
+                trigger_room_backoff(light_id)
                 return
 
-def trigger_override_shutdown():
-    """Stop the animation due to external override"""
-    log("Stopping animation due to external override")
-    stop_scene()
+def trigger_room_backoff(light_id):
+    """Back off the base room containing this light (granular backoff)"""
+    global scene_state
+
+    # Find which base room contains this light
+    room = get_base_room_for_light(light_id)
+    if not room:
+        return
+
+    # Back off all lights in that room
+    room_lights = set(ROOM_LIGHTS.get(room, []))
+    newly_backed = room_lights - scene_state["backed_off_lights"]
+    if newly_backed:
+        scene_state["backed_off_lights"].update(room_lights)
+        log(f"Backed off room '{room}' ({len(newly_backed)} lights)")
+        save_scene_state()  # Persist for recovery
+
+    # If all active lights are now backed off, stop the scene entirely
+    if scene_state["backed_off_lights"] >= scene_state["light_ids"]:
+        log("All rooms backed off, stopping scene")
+        stop_scene()
 
 def event_stream_monitor():
     """Background thread that monitors Hue EventStream for external changes"""
@@ -311,6 +346,7 @@ def save_scene_state():
         "animation": scene_state["animation"],
         "rooms": scene_state["rooms"],
         "light_ids": list(scene_state.get("light_ids", set())),  # Convert set to list for JSON
+        "backed_off_lights": list(scene_state.get("backed_off_lights", set())),  # Convert set to list for JSON
         "started_at": scene_state["started_at"]
     }
     with open(STATE_FILE, 'w') as f:
@@ -396,6 +432,7 @@ def load_scene_state():
                 "animation": state["animation"],
                 "rooms": state["rooms"],
                 "light_ids": set(state.get("light_ids", [])),  # Restore as set
+                "backed_off_lights": set(state.get("backed_off_lights", [])),  # Restore as set
                 "started_at": state["started_at"],
                 "last_command_time": 0,
             }
@@ -434,6 +471,7 @@ def stop_scene():
         "animation": None,
         "rooms": [],
         "light_ids": set(),
+        "backed_off_lights": set(),
         "started_at": None,
         "last_command_time": 0,
     }
@@ -474,6 +512,7 @@ def start_scene(palette, animation, rooms, brightness=94):
             "animation": animation,
             "rooms": rooms,
             "light_ids": light_ids,
+            "backed_off_lights": set(),  # Fresh start, no backed-off lights
             "started_at": datetime.now().isoformat(),
             "last_command_time": int(time.time() * 1000),  # Track when we started
         }
@@ -565,12 +604,22 @@ class HueProxyHandler(SimpleHTTPRequestHandler):
                 if not is_process_running(scene_state["pid"]):
                     stop_scene()
 
+            # Compute backed-off rooms for status display
+            backed_off_rooms = []
+            for room in BASE_ROOMS:
+                room_lights = set(ROOM_LIGHTS.get(room, []))
+                backed_off = scene_state.get("backed_off_lights", set())
+                if room_lights and room_lights <= backed_off:
+                    backed_off_rooms.append(room)
+
             self.send_json({
                 "running": scene_state["running"],
                 "palette": scene_state["palette"],
                 "animation": scene_state["animation"],
                 "rooms": scene_state["rooms"],
-                "started_at": scene_state["started_at"]
+                "started_at": scene_state["started_at"],
+                "backed_off_rooms": backed_off_rooms,
+                "backed_off_lights_count": len(scene_state.get("backed_off_lights", set())),
             })
             return
 
@@ -675,9 +724,19 @@ class HueProxyHandler(SimpleHTTPRequestHandler):
         """Proxy request to Hue bridge with timeout"""
         global scene_state
 
-        # Track light commands for override detection
-        # This keeps the debounce window current when animations route through the server
+        # Filter backed-off lights - silently succeed without forwarding to bridge
         if method == 'PUT' and '/resource/light/' in self.path:
+            # Extract light_id from path: /api/clip/v2/resource/light/{id}
+            parts = self.path.split('/resource/light/')
+            if len(parts) > 1:
+                light_id = parts[1].split('/')[0]
+                if light_id in scene_state.get("backed_off_lights", set()):
+                    # Silently succeed - animation keeps running but we don't forward
+                    self.send_json({"data": [{"success": True}]})
+                    return
+
+            # Track light commands for override detection
+            # This keeps the debounce window current when animations route through the server
             scene_state["last_command_time"] = int(time.time() * 1000)
 
         # Remove /api prefix and build bridge URL
