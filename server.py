@@ -486,8 +486,35 @@ def start_scene(palette, animation, rooms, brightness=94):
 
 
 class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
-    """Threaded HTTP server for concurrent requests"""
+    """Threaded HTTP server for concurrent requests
+
+    Overrides socket creation to fix macOS non-interactive SSH issue where
+    the socket enters CLOSED state instead of LISTEN when started via SSH.
+    """
     daemon_threads = True
+    allow_reuse_address = True
+
+    def __init__(self, server_address, RequestHandlerClass):
+        """Create server with manually configured socket (fixes macOS SSH issue)"""
+        # Create and configure socket manually before parent init
+        # This fixes the CLOSED socket state issue on macOS with non-interactive SSH
+        self.address_family = socket.AF_INET
+        self.socket_type = socket.SOCK_STREAM
+
+        # Create socket explicitly
+        sock = socket.socket(self.address_family, self.socket_type)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        # Bind and listen before HTTPServer.__init__ tries to
+        sock.bind(server_address)
+        sock.listen(5)
+
+        # Now init parent with bind_and_activate=False since we already did it
+        HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate=False)
+
+        # Replace the socket HTTPServer created with our pre-configured one
+        self.socket = sock
+        self.server_address = sock.getsockname()
 
 
 class HueProxyHandler(SimpleHTTPRequestHandler):

@@ -12,13 +12,18 @@ python3.13 -u server.py
 Server runs on port 8080. Access control panel at `http://localhost:8080/control-panel.html`
 
 ### Running on Mac Mini (headless server)
-The server runs on `hue.local` (Mac Mini). Due to a known issue with launchd/detached processes, start interactively:
+The server runs on `hue.local` (Mac Mini). Can be started via SSH (interactive or non-interactive):
 ```bash
-# From MacBook
-ssh mini "cd ~/Projects/hue-lights && /opt/homebrew/bin/python3.13 -u server.py"
+# From MacBook - runs in background
+ssh hue.local 'cd ~/Projects/hue-lights && /opt/homebrew/bin/python3.13 -u server.py' &
+
+# Or use /clean-start skill for full reset
 ```
 
 See `~/Projects/hello-mac-mini/MAC-MINI-SERVER.md` for full server documentation.
+
+### Clean Restart
+Use `/clean-start` to completely reset the server - stops launchd, kills all processes, clears state, starts fresh with EventStream.
 
 ## Project Structure
 ```
@@ -47,10 +52,10 @@ See `docs/api-reference.md` for full API documentation.
 
 ## Known Issues
 
-### Socket CLOSED with launchd
-When started via launchd, screen, tmux, or nohup, the server's socket enters CLOSED state and won't accept connections. The Python process runs but the HTTP listener fails.
+### Socket CLOSED with launchd (FIXED)
+Previously, when started via non-interactive SSH, launchd, screen, tmux, or nohup, the server's socket would enter CLOSED state instead of LISTEN. This was caused by Python's HTTPServer socket initialization.
 
-**Workaround**: Run from an interactive SSH session (keep terminal open).
+**Fix**: The `ThreadingHTTPServer` class in `server.py` now creates and configures the socket manually before HTTPServer initialization, which resolves the macOS non-interactive session issue. The server can now be started via any method.
 
 ## Documentation
 - `docs/api-reference.md` - REST API documentation
