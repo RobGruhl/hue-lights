@@ -506,7 +506,7 @@ class ThreadingHTTPServer(ThreadingMixIn, HTTPServer):
 
         # Bind and listen before HTTPServer.__init__ tries to
         sock.bind(server_address)
-        sock.listen(5)
+        sock.listen(128)
 
         # Now init parent with bind_and_activate=False since we already did it
         HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate=False)
@@ -720,8 +720,9 @@ class HueProxyHandler(SimpleHTTPRequestHandler):
 
     def log_message(self, format, *args):
         """Custom logging with timestamps"""
-        if '/api/' in args[0] or '/health' in args[0]:
-            log(f"[API] {args[0]}")
+        msg = str(args[0]) if args else ''
+        if '/api/' in msg or '/health' in msg:
+            log(f"[API] {msg}")
         # Suppress static file logs
 
 

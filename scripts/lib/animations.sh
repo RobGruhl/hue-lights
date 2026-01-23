@@ -4,6 +4,9 @@
 
 # Requires: HUE_BRIDGE, HUE_USER, and palette loaded (CX, CY, CB, PALETTE_LEN)
 
+# Server URL - use LAN IP to avoid macOS loopback issues
+SERVER_URL="${SERVER_URL:-http://192.168.1.33:8080}"
+
 # =============================================================================
 # CORE API FUNCTIONS
 # =============================================================================
@@ -21,7 +24,7 @@ set_gradient() {
     local p3=$(( (phase + 6) % PALETTE_LEN ))
     local p4=$(( (phase + 8) % PALETTE_LEN ))
 
-    curl -s -X PUT "http://localhost:8080/api/clip/v2/resource/light/$id" \
+    curl -s -X PUT "$SERVER_URL/api/clip/v2/resource/light/$id" \
       -H "Content-Type: application/json" \
       -d "{\"gradient\":{\"points\":[
         {\"color\":{\"xy\":{\"x\":${CX[$p0]},\"y\":${CY[$p0]}}},\"dimming\":{\"brightness\":${CB[$p0]}}},
@@ -44,7 +47,7 @@ set_solid() {
     local scaled_bri=$(( palette_bri * ${BRIGHTNESS:-100} / 100 ))
     local bri=${brightness_override:-$scaled_bri}
 
-    curl -s -X PUT "http://localhost:8080/api/clip/v2/resource/light/$id" \
+    curl -s -X PUT "$SERVER_URL/api/clip/v2/resource/light/$id" \
       -H "Content-Type: application/json" \
       -d "{\"on\":{\"on\":true},\"color\":{\"xy\":{\"x\":${CX[$p]},\"y\":${CY[$p]}}},\"dimming\":{\"brightness\":$bri},\"dynamics\":{\"duration\":$duration}}" > /dev/null 2>&1
 }
